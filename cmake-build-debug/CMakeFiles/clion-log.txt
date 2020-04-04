@@ -1,0 +1,4 @@
+/usr/local/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -G "CodeBlocks - Unix Makefiles" /Users/keyclicker/Programming/Repos/teleport-engine
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /Users/keyclicker/Programming/Repos/teleport-engine/cmake-build-debug
