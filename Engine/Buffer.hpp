@@ -1,71 +1,119 @@
 #pragma once
 
 #include <GLFW/glfw3.h>
-#include <OpenGL/gl3.h>
+#include <SFML/Graphics.hpp>
 
 #include <exception>
 #include <stdexcept>
 
+
 class Buffer {
 private:
-  GLushort ***buffer;
-
   uint16_t width, height;
 
-public:
-  GLFWwindow *window;
+  sf::RenderWindow window;
+  sf::Sprite sprite;
+  sf::Texture texture;
+  sf::Image image;
 
+public:
+  Buffer(const Buffer &rhs) = delete;
+  Buffer &operator=(const Buffer &rhs) = delete;
 
   Buffer(uint16_t width, uint16_t height, char *str):
-  width(width), height(height) {
+          width(width), height(height),
+          window(sf::RenderWindow(sf::VideoMode(width, height), str)){
 
-    buffer = new GLushort**[width];
-    for (int i = 0; i < width; ++i) {
-      buffer[i] = new GLushort*[height];
-      for (int j = 0; j < height; ++j) {
-        buffer[i][j] = new GLushort[3];
-      }
-    }
-
-    /* Initialize the library */
-    if (!glfwInit())
-      throw std::runtime_error("glfwInit() failed!");
-
-    /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(width, height, str, NULL, NULL);
-    if (!window) {
-      glfwTerminate();
-      throw std::runtime_error("glfwCreateWindow() failed!");
-    }
-
-    /* Make the window's context current */
-    glfwMakeContextCurrent(window);
-
-
-    GLuint fbo;
-    glGenFramebuffers(1, &fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-
-    GLuint rb;
-    glGenRenderbuffers(1, &rb);
-    glBindRenderbuffer(GL_RENDERBUFFER, rb);
+    image.create(width, height);
   }
 
-  void makeCurrent() {
-    glfwMakeContextCurrent(window);
-  };
+  void setPixel(uint16_t x, uint8_t y, GLushort r, GLushort g, GLushort b) {
+    image.setPixel(x, y, sf::Color(r, g, b));
+  }
 
   bool isOpen() {
-    return !glfwWindowShouldClose(window);
-  }
+    texture.loadFromImage(image);
+    sprite.setTexture(texture);
+    window.draw(sprite);
+    image.create(width, height);
 
+    window.display();
+    window.clear();
 
-  ~Buffer() {
-    glfwTerminate();
-    for (int i = 0; i < width; ++i) {
-      delete[] buffer[i];
-    }
-    delete[] buffer;
+    return window.isOpen();
   }
 };
+
+
+//class Buffer {
+//private:
+//  GLushort ***buffer;
+//  uint16_t width, height;
+//  GLFWwindow *window;
+//
+//public:
+//  Buffer(uint16_t width, uint16_t height, char *str):
+//  width(width), height(height) {
+//
+//    buffer = new GLushort**[width];
+//    for (int i = 0; i < width; ++i) {
+//      buffer[i] = new GLushort*[height];
+//      for (int j = 0; j < height; ++j) {
+//        buffer[i][j] = new GLushort[3];
+//      }
+//    }
+//
+//    /* Initialize the library */
+//    if (!glfwInit())
+//      throw std::runtime_error("glfwInit() failed!");
+//
+//    /* Create a windowed mode window and its OpenGL context */
+//    window = glfwCreateWindow(width, height, str, NULL, NULL);
+//    if (!window) {
+//      glfwTerminate();
+//      throw std::runtime_error("glfwCreateWindow() failed!");
+//    }
+//
+//    /* Make the window's context current */
+//    glfwMakeContextCurrent(window);
+//
+//
+//    GLuint fbo;
+//    glGenFramebuffers(1, &fbo);
+//    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+//
+//
+//    GLuint rb;
+//    glGenRenderbuffers(1, &rb);
+//    glBindRenderbuffer(GL_RENDERBUFFER, rb);
+//  }
+//
+//  void drawPixel(uint16_t x, uint8_t y, GLushort r, GLushort g, GLushort b) {
+//    buffer[x][y][0] = r;
+//    buffer[x][y][1] = g;
+//    buffer[x][y][2] = b;
+//  }
+//
+//  void makeCurrent() {
+//    glfwMakeContextCurrent(window);
+//  };
+//
+//  bool isOpen() {
+//    /* Swap front and back buffers */
+//    glfwSwapBuffers(window);
+//    /* Poll for and process events */
+//    glfwPollEvents();
+//
+//    glClear(GL_COLOR_BUFFER_BIT);
+//    return !glfwWindowShouldClose(window);
+//  }
+//
+//
+//  ~Buffer() {
+//    glfwTerminate();
+//    for (int i = 0; i < width; ++i) {
+//      delete[] buffer[i];
+//    }
+//    delete[] buffer;
+//  }
+//};

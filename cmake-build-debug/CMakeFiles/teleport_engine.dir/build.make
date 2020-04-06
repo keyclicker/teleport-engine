@@ -34,19 +34,19 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /usr/local/Cellar/cmake/3.15.2/bin/cmake
+CMAKE_COMMAND = /home/keyclicker/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/192.6817.32/bin/cmake/linux/bin/cmake
 
 # The command to remove a file.
-RM = /usr/local/Cellar/cmake/3.15.2/bin/cmake -E remove -f
+RM = /home/keyclicker/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/192.6817.32/bin/cmake/linux/bin/cmake -E remove -f
 
 # Escaping for special characters.
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/keyclicker/Programming/Repos/teleport-engine
+CMAKE_SOURCE_DIR = /home/keyclicker/Documents/Repos/teleport-engine
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/keyclicker/Programming/Repos/teleport-engine/cmake-build-debug
+CMAKE_BINARY_DIR = /home/keyclicker/Documents/Repos/teleport-engine/cmake-build-debug
 
 # Include any dependencies generated for this target.
 include CMakeFiles/teleport_engine.dir/depend.make
@@ -59,30 +59,54 @@ include CMakeFiles/teleport_engine.dir/flags.make
 
 CMakeFiles/teleport_engine.dir/Game/main.cpp.o: CMakeFiles/teleport_engine.dir/flags.make
 CMakeFiles/teleport_engine.dir/Game/main.cpp.o: ../Game/main.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/keyclicker/Programming/Repos/teleport-engine/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/teleport_engine.dir/Game/main.cpp.o"
-	/usr/bin/clang++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/teleport_engine.dir/Game/main.cpp.o -c /Users/keyclicker/Programming/Repos/teleport-engine/Game/main.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/keyclicker/Documents/Repos/teleport-engine/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/teleport_engine.dir/Game/main.cpp.o"
+	/usr/bin/g++-9  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/teleport_engine.dir/Game/main.cpp.o -c /home/keyclicker/Documents/Repos/teleport-engine/Game/main.cpp
 
 CMakeFiles/teleport_engine.dir/Game/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/teleport_engine.dir/Game/main.cpp.i"
-	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/keyclicker/Programming/Repos/teleport-engine/Game/main.cpp > CMakeFiles/teleport_engine.dir/Game/main.cpp.i
+	/usr/bin/g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/keyclicker/Documents/Repos/teleport-engine/Game/main.cpp > CMakeFiles/teleport_engine.dir/Game/main.cpp.i
 
 CMakeFiles/teleport_engine.dir/Game/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/teleport_engine.dir/Game/main.cpp.s"
-	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/keyclicker/Programming/Repos/teleport-engine/Game/main.cpp -o CMakeFiles/teleport_engine.dir/Game/main.cpp.s
+	/usr/bin/g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/keyclicker/Documents/Repos/teleport-engine/Game/main.cpp -o CMakeFiles/teleport_engine.dir/Game/main.cpp.s
+
+CMakeFiles/teleport_engine.dir/Engine/Game.cpp.o: CMakeFiles/teleport_engine.dir/flags.make
+CMakeFiles/teleport_engine.dir/Engine/Game.cpp.o: ../Engine/Game.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/keyclicker/Documents/Repos/teleport-engine/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/teleport_engine.dir/Engine/Game.cpp.o"
+	/usr/bin/g++-9  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/teleport_engine.dir/Engine/Game.cpp.o -c /home/keyclicker/Documents/Repos/teleport-engine/Engine/Game.cpp
+
+CMakeFiles/teleport_engine.dir/Engine/Game.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/teleport_engine.dir/Engine/Game.cpp.i"
+	/usr/bin/g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/keyclicker/Documents/Repos/teleport-engine/Engine/Game.cpp > CMakeFiles/teleport_engine.dir/Engine/Game.cpp.i
+
+CMakeFiles/teleport_engine.dir/Engine/Game.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/teleport_engine.dir/Engine/Game.cpp.s"
+	/usr/bin/g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/keyclicker/Documents/Repos/teleport-engine/Engine/Game.cpp -o CMakeFiles/teleport_engine.dir/Engine/Game.cpp.s
 
 # Object files for target teleport_engine
 teleport_engine_OBJECTS = \
-"CMakeFiles/teleport_engine.dir/Game/main.cpp.o"
+"CMakeFiles/teleport_engine.dir/Game/main.cpp.o" \
+"CMakeFiles/teleport_engine.dir/Engine/Game.cpp.o"
 
 # External object files for target teleport_engine
 teleport_engine_EXTERNAL_OBJECTS =
 
 teleport_engine: CMakeFiles/teleport_engine.dir/Game/main.cpp.o
+teleport_engine: CMakeFiles/teleport_engine.dir/Engine/Game.cpp.o
 teleport_engine: CMakeFiles/teleport_engine.dir/build.make
-teleport_engine: /usr/local/lib/libglfw.3.3.dylib
-teleport_engine: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/OpenGL.framework/OpenGL.tbd
+teleport_engine: /usr/local/lib/libglfw3.a
+teleport_engine: /usr/lib/x86_64-linux-gnu/libOpenGL.so
+teleport_engine: /usr/lib/x86_64-linux-gnu/libGLX.so
+teleport_engine: /usr/lib/x86_64-linux-gnu/libGLU.so
+teleport_engine: /usr/local/lib/libsfml-graphics.so.2.5.1
+teleport_engine: /usr/local/lib/libsfml-window.so.2.5.1
+teleport_engine: /usr/local/lib/libsfml-system.so.2.5.1
+teleport_engine: /usr/lib/x86_64-linux-gnu/librt.so
+teleport_engine: /usr/lib/x86_64-linux-gnu/libm.so
+teleport_engine: /usr/lib/x86_64-linux-gnu/libGLX.so
+teleport_engine: /usr/lib/x86_64-linux-gnu/libOpenGL.so
 teleport_engine: CMakeFiles/teleport_engine.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/keyclicker/Programming/Repos/teleport-engine/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable teleport_engine"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/keyclicker/Documents/Repos/teleport-engine/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable teleport_engine"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/teleport_engine.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -95,6 +119,6 @@ CMakeFiles/teleport_engine.dir/clean:
 .PHONY : CMakeFiles/teleport_engine.dir/clean
 
 CMakeFiles/teleport_engine.dir/depend:
-	cd /Users/keyclicker/Programming/Repos/teleport-engine/cmake-build-debug && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/keyclicker/Programming/Repos/teleport-engine /Users/keyclicker/Programming/Repos/teleport-engine /Users/keyclicker/Programming/Repos/teleport-engine/cmake-build-debug /Users/keyclicker/Programming/Repos/teleport-engine/cmake-build-debug /Users/keyclicker/Programming/Repos/teleport-engine/cmake-build-debug/CMakeFiles/teleport_engine.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/keyclicker/Documents/Repos/teleport-engine/cmake-build-debug && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/keyclicker/Documents/Repos/teleport-engine /home/keyclicker/Documents/Repos/teleport-engine /home/keyclicker/Documents/Repos/teleport-engine/cmake-build-debug /home/keyclicker/Documents/Repos/teleport-engine/cmake-build-debug /home/keyclicker/Documents/Repos/teleport-engine/cmake-build-debug/CMakeFiles/teleport_engine.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/teleport_engine.dir/depend
 

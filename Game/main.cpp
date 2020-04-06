@@ -1,26 +1,44 @@
-#include "../Engine/Buffer.hpp"
+#include "../Engine/Game.hpp"
+#include "../Engine/Map.hpp"
+
+
 
 int main() {
 
+  Map map;
 
-  Buffer bf(1280, 720, "hello");
+  Map::Vertex vers[] = {
+    {400, 400}, {400, -400}, {0, -600},
+    {-400, 400}, {-400, -400}, {0, 600}
+  };
 
-  while (bf.isOpen()) {
-    glClear(GL_COLOR_BUFFER_BIT);
+  Map::Side side;
+  side.middle = Color(255, 0, 0);
+  side.top = Color(0, 255, 0);
+  side.bottom = Color(0, 0, 255);
 
+  Map::Sector sec;
 
-    glBegin(GL_TRIANGLES);
-    glColor3f(0.1, 0.2, 0.3);
-    glVertex3f(0, 0, 0);
-    glVertex3f(1, 0, 0);
-    glVertex3f(0, 1, 0);
-    glEnd();
+  sec.ceiling = Color(20, 20, 20);
+  sec.floor = Color(40, 40, 40);
+  sec.ceilingheight = 56;
+  sec.floorheight = -56;
+  sec.lightlevel = 60;
 
-    /* Swap front and back buffers */
-    glfwSwapBuffers(bf.window);
-    /* Poll for and process events */
-    glfwPollEvents();
+  map.sectors.push_back(sec);
+
+  for (int i = 0; i < 6; ++i) {
+    Map::Line line;
+    line.side = side;
+
+    line.v1 = vers[i];
+    line.v2 = vers[(i+1)%6];
+
+    map.sectors.back().lines.push_back(line);
   }
 
-  return 0;
+  Game game(1280, 720, "Teleport!");
+  game.setMap(map);
+
+  game.gameLoop();
 }

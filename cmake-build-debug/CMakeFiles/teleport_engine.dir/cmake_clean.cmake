@@ -1,4 +1,5 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/teleport_engine.dir/Engine/Game.cpp.o"
   "CMakeFiles/teleport_engine.dir/Game/main.cpp.o"
   "teleport_engine"
   "teleport_engine.pdb"

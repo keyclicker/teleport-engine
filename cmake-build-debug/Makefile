@@ -39,19 +39,19 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /usr/local/Cellar/cmake/3.15.2/bin/cmake
+CMAKE_COMMAND = /home/keyclicker/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/192.6817.32/bin/cmake/linux/bin/cmake
 
 # The command to remove a file.
-RM = /usr/local/Cellar/cmake/3.15.2/bin/cmake -E remove -f
+RM = /home/keyclicker/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/192.6817.32/bin/cmake/linux/bin/cmake -E remove -f
 
 # Escaping for special characters.
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/keyclicker/Programming/Repos/teleport-engine
+CMAKE_SOURCE_DIR = /home/keyclicker/Documents/Repos/teleport-engine
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/keyclicker/Programming/Repos/teleport-engine/cmake-build-debug
+CMAKE_BINARY_DIR = /home/keyclicker/Documents/Repos/teleport-engine/cmake-build-debug
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -59,7 +59,7 @@ CMAKE_BINARY_DIR = /Users/keyclicker/Programming/Repos/teleport-engine/cmake-bui
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/local/Cellar/cmake/3.15.2/bin/cmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	/home/keyclicker/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/192.6817.32/bin/cmake/linux/bin/cmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : rebuild_cache
 
 # Special rule for the target rebuild_cache
@@ -70,7 +70,7 @@ rebuild_cache/fast: rebuild_cache
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/usr/local/Cellar/cmake/3.15.2/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+	/home/keyclicker/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/192.6817.32/bin/cmake/linux/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
 .PHONY : edit_cache
 
 # Special rule for the target edit_cache
@@ -80,9 +80,9 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/keyclicker/Programming/Repos/teleport-engine/cmake-build-debug/CMakeFiles /Users/keyclicker/Programming/Repos/teleport-engine/cmake-build-debug/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/keyclicker/Documents/Repos/teleport-engine/cmake-build-debug/CMakeFiles /home/keyclicker/Documents/Repos/teleport-engine/cmake-build-debug/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/keyclicker/Programming/Repos/teleport-engine/cmake-build-debug/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/keyclicker/Documents/Repos/teleport-engine/cmake-build-debug/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -123,6 +123,33 @@ teleport_engine/fast:
 	$(MAKE) -f CMakeFiles/teleport_engine.dir/build.make CMakeFiles/teleport_engine.dir/build
 .PHONY : teleport_engine/fast
 
+Engine/Game.o: Engine/Game.cpp.o
+
+.PHONY : Engine/Game.o
+
+# target to build an object file
+Engine/Game.cpp.o:
+	$(MAKE) -f CMakeFiles/teleport_engine.dir/build.make CMakeFiles/teleport_engine.dir/Engine/Game.cpp.o
+.PHONY : Engine/Game.cpp.o
+
+Engine/Game.i: Engine/Game.cpp.i
+
+.PHONY : Engine/Game.i
+
+# target to preprocess a source file
+Engine/Game.cpp.i:
+	$(MAKE) -f CMakeFiles/teleport_engine.dir/build.make CMakeFiles/teleport_engine.dir/Engine/Game.cpp.i
+.PHONY : Engine/Game.cpp.i
+
+Engine/Game.s: Engine/Game.cpp.s
+
+.PHONY : Engine/Game.s
+
+# target to generate assembly for a file
+Engine/Game.cpp.s:
+	$(MAKE) -f CMakeFiles/teleport_engine.dir/build.make CMakeFiles/teleport_engine.dir/Engine/Game.cpp.s
+.PHONY : Engine/Game.cpp.s
+
 Game/main.o: Game/main.cpp.o
 
 .PHONY : Game/main.o
@@ -157,8 +184,11 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... rebuild_cache"
-	@echo "... edit_cache"
 	@echo "... teleport_engine"
+	@echo "... edit_cache"
+	@echo "... Engine/Game.o"
+	@echo "... Engine/Game.i"
+	@echo "... Engine/Game.s"
 	@echo "... Game/main.o"
 	@echo "... Game/main.i"
 	@echo "... Game/main.s"

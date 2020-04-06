@@ -35,19 +35,19 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /usr/local/Cellar/cmake/3.15.2/bin/cmake
+CMAKE_COMMAND = /home/keyclicker/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/192.6817.32/bin/cmake/linux/bin/cmake
 
 # The command to remove a file.
-RM = /usr/local/Cellar/cmake/3.15.2/bin/cmake -E remove -f
+RM = /home/keyclicker/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/192.6817.32/bin/cmake/linux/bin/cmake -E remove -f
 
 # Escaping for special characters.
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/keyclicker/Programming/Repos/teleport-engine
+CMAKE_SOURCE_DIR = /home/keyclicker/Documents/Repos/teleport-engine
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/keyclicker/Programming/Repos/teleport-engine/cmake-build-debug
+CMAKE_BINARY_DIR = /home/keyclicker/Documents/Repos/teleport-engine/cmake-build-debug
 
 #=============================================================================
 # Directory level rules for the build root directory
@@ -74,14 +74,14 @@ preinstall:
 CMakeFiles/teleport_engine.dir/all:
 	$(MAKE) -f CMakeFiles/teleport_engine.dir/build.make CMakeFiles/teleport_engine.dir/depend
 	$(MAKE) -f CMakeFiles/teleport_engine.dir/build.make CMakeFiles/teleport_engine.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/keyclicker/Programming/Repos/teleport-engine/cmake-build-debug/CMakeFiles --progress-num=1,2 "Built target teleport_engine"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/keyclicker/Documents/Repos/teleport-engine/cmake-build-debug/CMakeFiles --progress-num=1,2,3 "Built target teleport_engine"
 .PHONY : CMakeFiles/teleport_engine.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/teleport_engine.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/keyclicker/Programming/Repos/teleport-engine/cmake-build-debug/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/keyclicker/Documents/Repos/teleport-engine/cmake-build-debug/CMakeFiles 3
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/teleport_engine.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/keyclicker/Programming/Repos/teleport-engine/cmake-build-debug/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/keyclicker/Documents/Repos/teleport-engine/cmake-build-debug/CMakeFiles 0
 .PHONY : CMakeFiles/teleport_engine.dir/rule
 
 # Convenience name for target.
