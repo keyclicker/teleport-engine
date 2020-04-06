@@ -1,3 +1,0 @@
-/home/keyclicker/Documents/Repos/teleport-engine/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/keyclicker/Documents/Repos/teleport-engine/cmake-build-debug/CMakeFiles/teleport_engine.dir
-/home/keyclicker/Documents/Repos/teleport-engine/cmake-build-debug/CMakeFiles/edit_cache.dir
