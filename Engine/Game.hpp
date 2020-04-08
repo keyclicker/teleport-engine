@@ -24,6 +24,12 @@ public:
   void gameLoop();
 
 private:
-  void renderSector(const Map::Sector &sec);
+  void renderSector(const Map::Sector &sec, const Map::Vertex &pos);
+
+  static Map::Vertex intersec(const Map::Vertex &v1, const Map::Vertex &v2,
+                       const Map::Vertex &v3, const Map::Vertex &v4);
+
+  static bool isVertexOnSeg(const Map::Vertex &v,
+          const Map::Vertex &sv1, const Map::Vertex &sv2);
 
 };

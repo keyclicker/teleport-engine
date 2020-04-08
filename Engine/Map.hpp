@@ -1,7 +1,8 @@
 #pragma once
 
 #include <vector>
-#include <stdint-gcc.h>
+#include <cmath>
+#include <cstdint>
 
 //temporary
 struct Color {
@@ -27,10 +28,17 @@ struct Map::Vertex {
   Vertex() = default;
   Vertex(double x, double y) : x(x), y(y) {}
 
-  Vertex operator+(const Vertex &rhs){
+  double length() {
+    return std::hypot(x, y);
+  }
+
+  double operator*(const Vertex &rhs) const {
+    return x * rhs.x + y * rhs.y;
+  }
+  Vertex operator+(const Vertex &rhs) const {
     return Vertex(x + rhs.x, y + rhs.y);
   }
-  Vertex operator-(const Vertex &rhs){
+  Vertex operator-(const Vertex &rhs) const {
     return Vertex(x - rhs.x, y - rhs.y);
   }
 

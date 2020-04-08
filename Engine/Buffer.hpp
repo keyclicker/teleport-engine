@@ -10,7 +10,6 @@
 class Buffer {
 private:
   uint16_t width, height;
-
   sf::RenderWindow window;
   sf::Sprite sprite;
   sf::Texture texture;
@@ -42,6 +41,15 @@ public:
 
     return window.isOpen();
   }
+
+  uint16_t getWidth() const {
+    return width;
+  }
+
+  uint16_t getHeight() const {
+    return height;
+  }
+
 };
 
 

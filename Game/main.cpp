@@ -30,6 +30,7 @@ int main() {
   for (int i = 0; i < 6; ++i) {
     Map::Line line;
     line.side = side;
+    line.sector = map.sectors.end() - 1;
 
     line.v1 = vers[i];
     line.v2 = vers[(i+1)%6];
