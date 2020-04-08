@@ -32,4 +32,5 @@ private:
   static bool isVertexOnSeg(const Map::Vertex &v,
           const Map::Vertex &sv1, const Map::Vertex &sv2);
 
+  static int fit(int var, int a, int b);
 };

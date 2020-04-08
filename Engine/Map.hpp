@@ -32,6 +32,10 @@ struct Map::Vertex {
     return std::hypot(x, y);
   }
 
+  Vertex operator-() const {
+    return Vertex(-x, -y);
+  }
+
   double operator*(const Vertex &rhs) const {
     return x * rhs.x + y * rhs.y;
   }

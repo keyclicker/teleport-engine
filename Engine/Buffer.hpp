@@ -10,12 +10,13 @@
 class Buffer {
 private:
   uint16_t width, height;
-  sf::RenderWindow window;
   sf::Sprite sprite;
   sf::Texture texture;
   sf::Image image;
 
 public:
+  sf::RenderWindow window;
+
   Buffer(const Buffer &rhs) = delete;
   Buffer &operator=(const Buffer &rhs) = delete;
 
@@ -26,7 +27,7 @@ public:
     image.create(width, height);
   }
 
-  void setPixel(uint16_t x, uint8_t y, GLushort r, GLushort g, GLushort b) {
+  void setPixel(uint16_t x, uint16_t y, GLushort r, GLushort g, GLushort b) {
     image.setPixel(x, y, sf::Color(r, g, b));
   }
 
@@ -37,6 +38,14 @@ public:
     image.create(width, height);
 
     window.display();
+
+    sf::Event event;
+    while (window.pollEvent(event))
+    {
+      if (event.type == sf::Event::Closed)
+        window.close();
+    }
+
     window.clear();
 
     return window.isOpen();
