@@ -1,6 +1,6 @@
 #pragma once
 
-#include <GLFW/glfw3.h>
+//#include <GLFW/glfw3.h>
 #include <SFML/Graphics.hpp>
 
 #include <exception>
@@ -27,7 +27,7 @@ public:
     image.create(width, height);
   }
 
-  void setPixel(uint16_t x, uint16_t y, GLushort r, GLushort g, GLushort b) {
+  void setPixel(uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b) {
     image.setPixel(x, y, sf::Color(r, g, b));
   }
 

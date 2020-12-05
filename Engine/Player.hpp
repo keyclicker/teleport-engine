@@ -5,9 +5,9 @@
 
 class Player {
 public:
-  Map::Vertex pos;
+  Map::Vertex pos = {0, 0};
   Map::Vertex dir = {1, 0};
-  Map::Vertex plane = {0, 1};
+  Map::Vertex plane = {0, -1};
   int height = 56;
 
   void rotate(double angle) {

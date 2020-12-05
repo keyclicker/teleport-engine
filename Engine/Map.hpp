@@ -8,7 +8,7 @@
 struct Color {
   uint8_t r, g, b;
 
-  Color() {}
+  Color(): r(0), g(0), b(0) {}
   Color(uint8_t r, uint8_t g, uint8_t b): r(r), g(g), b(b) {}
 };
 
@@ -47,13 +47,13 @@ struct Map::Vertex {
   }
 
   friend Vertex operator*(double mlt, const Vertex &ver) {
-    return Vertex(ver.x * mlt, ver.x * mlt);
+    return Vertex(ver.x * mlt, ver.y * mlt);
   }
   friend Vertex operator*(const Vertex &ver, double mlt) {
-    return Vertex(ver.x * mlt, ver.x * mlt);
+    return Vertex(ver.x * mlt, ver.y * mlt);
   }
   friend Vertex operator/(const Vertex &ver, double mlt) {
-    return Vertex(ver.x / mlt, ver.x / mlt);
+    return Vertex(ver.x / mlt, ver.y / mlt);
   }
 };
 

@@ -24,7 +24,7 @@ public:
   void gameLoop();
 
 private:
-  void renderSector(const Map::Sector &sec, const Map::Vertex &pos);
+  void renderSector(const Map::Sector &sec);
 
   static Map::Vertex intersec(const Map::Vertex &v1, const Map::Vertex &v2,
                        const Map::Vertex &v3, const Map::Vertex &v4);

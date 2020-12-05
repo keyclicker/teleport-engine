@@ -1,63 +1,99 @@
 #include "Game.hpp"
 
-void Game::gameLoop() {
-  while (bf.isOpen()) {
-    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)) {
-      player.rotate(0.001);
-    }
+#include "iostream" //todo for debug
 
+void Game::gameLoop() {
+  sf::Clock cl;
+
+  while (bf.isOpen()) {
+    auto ep = cl.restart().asSeconds();
+
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)) {
+      player.rotate(1 * ep);
+    }
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) {
-      player.rotate(-0.001);
+      player.rotate(-1 * ep);
     }
 
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
-      player.move(player.dir);
+      player.move(player.dir * (ep * 1000));
     }
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
-      player.move(-player.dir);
+      player.move(-player.dir * (ep * 1000));
+    }
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
+      player.move(-player.plane * (ep * 1000));
+    }
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
+      player.move(player.plane * (ep * 1000));
     }
 
-    renderSector(map.sectors.back(), player.pos);
+    static auto d = 0.0;
+
+    d += ep;
+    if (d > 1) {
+      d = 0;
+      std::cout << 1.0/ep << std::endl;
+    }
+
+    renderSector(map.sectors.back());
   }
 }
 
-void Game::renderSector(const Map::Sector &sec, const Map::Vertex &pos) {
+void Game::renderSector(const Map::Sector &sec) {
   for (auto &a : sec.lines) {
     //v1 projection on view plane
-    auto p1 = intersec(pos + player.dir,
-            pos + player.dir + player.plane, pos, a.v1);
+    auto p1 = intersec(player.pos + player.dir,
+                       player.pos + player.dir + player.plane, player.pos, a.v1);
 
     //v2 projection on view plane
-    auto p2 = intersec(pos + player.dir,
-            pos + player.dir + player.plane, pos, a.v2);
+    auto p2 = intersec(player.pos + player.dir,
+                       player.pos + player.dir + player.plane, player.pos, a.v2);
 
-    auto v1pl = (pos + player.dir + player.plane - p1).length();
-    auto v2pl = (pos + player.dir + player.plane - p2).length();
 
-    if (v1pl < 0 || v1pl > 2 || v2pl < 0 || v2pl > 2) {
-      int test;
-      test = 0;
-    }
+    //calculating wall start and end on plane
+    auto v1pl = (p1 - (player.pos + player.dir)) * player.plane / player.plane.length();
+    auto v2pl = (p2 - (player.pos + player.dir)) * player.plane / player.plane.length();
+
+    //calculating distances to the wall's start and end
+    auto v1DistProj = (a.v1 - player.pos) * player.dir / player.dir.length();
+    auto v2DistProj = (a.v2 - player.pos) * player.dir / player.dir.length();
 
     auto v1 = a.v1;
     auto v2 = a.v2;
 
+    //if wall start and end are out of screen, casts two view rays
+    if (v1pl < -1 || v1DistProj < 0) {
+      v1pl = -1;
+      v1 = intersec(player.pos, player.pos + player.dir - player.plane, a.v1, a.v2);
+      v1DistProj = (v1 - player.pos) * player.dir / player.dir.length();
+    }
+
+    if (v2pl > 1 || v2DistProj < 0) {
+      v2pl = 1;
+      v2 = intersec(player.pos, player.pos + player.dir + player.plane, a.v1, a.v2);
+      v2DistProj = (v2 - player.pos) * player.dir / player.dir.length();
+    }
+
+    if (v1pl > 1 || v2pl < -1) continue;
+
+    //skips line behind view
+    if (v1DistProj < 0 || v2DistProj < 0)
+      continue;
+
+    //for safety
     if (v1pl > v2pl) {
-      std::swap(v1pl, v2pl);
+      std::swap(v1pl, v2pl); //todo check
       std::swap(v1, v2);
     }
 
-    uint16_t leftCol = bf.getWidth() * ((v1pl) / 2.0);
-    uint16_t rightCol = bf.getWidth() * ((v2pl) / 2.0);
 
-    auto v1DistProj = (v1 - pos) * player.dir / player.dir.length();
-    auto v2DistProj = (v2 - pos) * player.dir / player.dir.length();
+    int16_t leftCol = bf.getWidth() * ((v1pl + 1) / 2.0);
+    int16_t rightCol = bf.getWidth() * ((v2pl + 1) / 2.0);
 
-    if (v1DistProj < 0) continue; //temp
-    if (v2DistProj < 0) continue; //temp
 
     auto upper = a.sector->ceilingheight -
-            a.sector->floorheight - player.height;
+                 a.sector->floorheight - player.height;
     auto bottom = player.height;
 
     auto leftUpper = upper / v1DistProj;
@@ -70,25 +106,28 @@ void Game::renderSector(const Map::Sector &sec, const Map::Vertex &pos) {
     for (int i = leftCol; i < rightCol; ++i) {
       auto k = (double) (i - leftCol) / (rightCol - leftCol);
 
-      uint16_t start = bf.getHeight() *
-              (1 - ((1 - k) * leftUpper + k * rightUpper)) / 2.0;
+      int16_t start = bf.getHeight() *
+                      (1 - ((1 - k) * leftUpper + k * rightUpper)) / 2.0;
 
-      uint16_t finish = bf.getHeight() *
-              (1 + ((1 - k) * leftBottom + k * rightBottom)) / 2.0;
+      int16_t finish = bf.getHeight() *
+                       (1 + ((1 - k) * leftBottom + k * rightBottom)) / 2.0;
 
       start = fit(start, 0, bf.getHeight());
       finish = fit(finish, 0, bf.getHeight());
 
       for (int j = start; j < finish; ++j) {
-        auto d = ((1 - k) * v1DistProj + k * v2DistProj) / 40.0;
+        auto d = ((1 - k) * v1DistProj + k * v2DistProj) / 80.0;
         auto c = a.side.middle;
-        bf.setPixel(i, j, c.r/d, c.g/d, c.b/d);
+        bf.setPixel(i, j, fit(c.r/d, 0, 255),
+                    fit(c.g/d, 0, 255),
+                    fit(c.b/d, 0, 255));
       }
 
     }
 
   }
 }
+
 
 Map::Vertex Game::intersec(const Map::Vertex &v1, const Map::Vertex &v2,
                            const Map::Vertex &v3, const Map::Vertex &v4) {
@@ -122,7 +161,9 @@ bool Game::isVertexOnSeg(const Map::Vertex &v,
 }
 
 int Game::fit(int var, int a, int b) {
-  if (var <= a) return a;
-  if (var >= b) return b;
+  if (var < a)
+    return a;
+  if (var > b)
+    return b;
   return var;
 }
