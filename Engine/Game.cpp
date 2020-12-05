@@ -36,6 +36,14 @@ void Game::gameLoop() {
       std::cout << 1.0/ep << std::endl;
     }
 
+    for (int i = 0; i < bf.getWidth(); ++i) {
+      for (int j = 0; j < bf.getHeight() / 2; ++j) {
+        bf.setPixel(i, j, 25, 25, 25);
+      }
+      for (int j = bf.getHeight() / 2; j < bf.getHeight(); ++j) {
+        bf.setPixel(i, j, 50, 50, 50);
+      }
+    }
     renderSector(map.sectors.back());
   }
 }
@@ -112,12 +120,16 @@ void Game::renderSector(const Map::Sector &sec) {
       int16_t finish = bf.getHeight() *
                        (1 + ((1 - k) * leftBottom + k * rightBottom)) / 2.0;
 
-      start = fit(start, 0, bf.getHeight());
-      finish = fit(finish, 0, bf.getHeight());
+      auto fstart = fit(start, 0, bf.getHeight());
+      auto ffinish = fit(finish, 0, bf.getHeight());
 
-      for (int j = start; j < finish; ++j) {
+      for (int j = fstart; j < ffinish; ++j) {
         auto d = ((1 - k) * v1DistProj + k * v2DistProj) / 80.0;
-        auto c = a.side.middle;
+
+        auto tx = ((v1-a.v1).length() + (v2-v1).length() * (i-leftCol)/(rightCol-leftCol)) * 5;
+        auto ty = a.side.middle.getSize().y * (j-start)/(finish-start);
+
+        auto c = a.side.middle.getPixel(tx, ty);
         bf.setPixel(i, j, fit(c.r/d, 0, 255),
                     fit(c.g/d, 0, 255),
                     fit(c.b/d, 0, 255));

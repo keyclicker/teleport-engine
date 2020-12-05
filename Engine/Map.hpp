@@ -1,6 +1,7 @@
 #pragma once
-
+#include <SFML/Graphics.hpp>
 #include <vector>
+#include <list>
 #include <cmath>
 #include <cstdint>
 
@@ -19,7 +20,7 @@ public:
   struct Side;
   struct Sector;
 
-  std::vector<Sector> sectors;
+  std::list<Sector> sectors;
 };
 
 struct Map::Vertex {
@@ -59,7 +60,7 @@ struct Map::Vertex {
 
 struct Map::Side {
   Color top; //Zaglushka
-  Color middle; //Zaglushka
+  sf::Image middle; //Zaglushka
   Color bottom; //Zaglushka
 };
 
@@ -67,8 +68,8 @@ struct Map::Side {
 struct Map::Line {
   Vertex v1, v2;
   Side side;
-  std::vector<Line>::iterator portal;
-  std::vector<Sector>::iterator sector;
+  Line *portal;
+  Sector *sector;
 };
 
 struct Map::Sector {
@@ -79,5 +80,5 @@ struct Map::Sector {
   Color floor; //Zaglushka
   Color ceiling; //Zaglushka
 
-  std::vector<Line> lines;
+  std::list<Line> lines;
 };

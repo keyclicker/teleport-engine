@@ -13,7 +13,9 @@ int main() {
   };
 
   Map::Side side;
-  side.middle = Color(255, 0, 0);
+  side.middle = sf::Image();
+  side.middle.loadFromFile("../Resources/Textures/misha.jpg");
+
   side.top = Color(0, 255, 0);
   side.bottom = Color(0, 0, 255);
 
@@ -30,7 +32,7 @@ int main() {
   for (int i = 0; i < 6; ++i) {
     Map::Line line;
     line.side = side;
-    line.sector = map.sectors.end() - 1;
+    line.sector = &map.sectors.back();
 
     line.v1 = vers[i];
     line.v2 = vers[(i+1)%6];
@@ -38,7 +40,7 @@ int main() {
     map.sectors.back().lines.push_back(line);
   }
 
-  Game game(1280, 720, "Teleport!");
+  Game game(640, 480, "Teleport!");
   game.setMap(map);
 
   game.gameLoop();
