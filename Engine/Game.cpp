@@ -110,6 +110,8 @@ void Game::renderSector(const Map::Sector &sec) {
     auto leftBottom = bottom / v1DistProj;
     auto rightBottom = bottom / v2DistProj;
 
+    //
+    auto sp = player.pos + player.dir - player.plane;
 
     for (int i = leftCol; i < rightCol; ++i) {
       auto k = (double) (i - leftCol) / (rightCol - leftCol);
@@ -123,12 +125,14 @@ void Game::renderSector(const Map::Sector &sec) {
       auto fstart = fit(start, 0, bf.getHeight());
       auto ffinish = fit(finish, 0, bf.getHeight());
 
+      auto d = ((1 - k) * v1DistProj + k * v2DistProj) / 80.0;
+
+      auto icp = sp + player.plane * (2.0 * i / bf.getWidth());
+      auto its = intersec(player.pos, icp, v1, v2);
+      auto tx = (its - a.v1).length() * 5.0;
+
       for (int j = fstart; j < ffinish; ++j) {
-        auto d = ((1 - k) * v1DistProj + k * v2DistProj) / 80.0;
-
-        auto tx = ((v1-a.v1).length() + (v2-v1).length() * (i-leftCol)/(rightCol-leftCol)) * 5;
         auto ty = a.side.middle.getSize().y * (j-start)/(finish-start);
-
         auto c = a.side.middle.getPixel(tx, ty);
         bf.setPixel(i, j, fit(c.r/d, 0, 255),
                     fit(c.g/d, 0, 255),
