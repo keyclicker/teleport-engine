@@ -8,8 +8,8 @@ public:
   Map::Vertex pos = {0, 0};
   Map::Vertex dir = {1, 0};
   Map::Vertex plane = {0, -1};
-  int realHeight = 56;
-  int height = 56;
+  int realHeight = 28;
+  int height = 28;
   double shakeState = 0;
 
   void rotate(double angle) {
@@ -33,7 +33,7 @@ public:
   }
 
   void shake(double sectime) {
-    shakeState += 10 * sectime;
-    height = realHeight + 20.0 * std::sin(shakeState);
+    shakeState += 7 * sectime;
+    height = realHeight + 5.0 * std::sin(shakeState);
   }
 };

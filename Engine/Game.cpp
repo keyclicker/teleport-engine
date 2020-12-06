@@ -8,27 +8,29 @@ void Game::gameLoop() {
   while (bf.isOpen()) {
     auto ep = cl.restart().asSeconds();
 
-    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)) {
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) ||
+       sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q) ) {
       player.rotate(2 * ep);
     }
-    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) {
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) ||
+       sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E)) {
       player.rotate(-2 * ep);
     }
 
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
-      player.move(player.dir * (ep * 500));
+      player.move(player.dir * (ep * 300));
       player.shake(ep);
     }
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
-      player.move(-player.dir * (ep * 500));
+      player.move(-player.dir * (ep * 300));
       player.shake(ep);
     }
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
-      player.move(-player.plane * (ep * 500));
+      player.move(-player.plane * (ep * 300));
       player.shake(ep);
     }
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
-      player.move(player.plane * (ep * 500));
+      player.move(player.plane * (ep * 300));
       player.shake(ep);
     }
 
@@ -40,19 +42,57 @@ void Game::gameLoop() {
       std::cout << 1.0/ep << std::endl;
     }
 
-    for (int i = 0; i < bf.getWidth(); ++i) {
-      for (int j = 0; j < bf.getHeight() / 2; ++j) {
-        bf.setPixel(i, j, 25, 25, 25);
-      }
-      for (int j = bf.getHeight() / 2; j < bf.getHeight(); ++j) {
-        bf.setPixel(i, j, 50, 50, 50);
-      }
-    }
     renderSector(map.sectors.back());
   }
 }
 
 void Game::renderSector(const Map::Sector &sec) {
+
+  auto rayDirL = player.dir - player.plane;
+  auto rayDirR = player.dir + player.plane;
+
+  auto posZ = player.height;
+  auto posZCeil = sec.ceilingheight - player.height ;
+
+  for (int y = 0; y < bf.getHeight() / 2; ++y) {
+    double p = (double)(bf.getHeight() / 2 - y) / bf.getWidth();
+    double rowDistance = (double) posZCeil / p;
+
+    auto floorStep = (rowDistance / bf.getWidth()) * (rayDirR - rayDirL);
+    auto floorP = player.pos + rowDistance * rayDirL;
+
+    auto &tex = sec.ceiling;
+
+    for (int x = 0; x < bf.getWidth(); ++x) {
+      int ty = int(floorP.y * tex.getSize().y / 100) % tex.getSize().y;
+      int tx = int(floorP.x * tex.getSize().x / 100) % tex.getSize().x;
+
+      auto c = tex.getPixel(tx, ty);
+      bf.setPixel(x, y, c.r, c.g, c.b);
+      floorP = floorP + floorStep; // todo +=
+    }
+  }
+
+  for (int y = bf.getHeight() / 2; y < bf.getHeight(); ++y) {
+    double p = (double)(y - bf.getHeight() / 2) / bf.getWidth();
+    double rowDistance = (double) posZ / p;
+
+    auto floorStep = (rowDistance / bf.getWidth()) * (rayDirR - rayDirL);
+    auto floorP = player.pos + rowDistance * rayDirL;
+
+    auto &tex = sec.floor;
+
+    for (int x = 0; x < bf.getWidth(); ++x) {
+      int ty = int(floorP.y * tex.getSize().y / 100) % tex.getSize().y;
+      int tx = int(floorP.x * tex.getSize().x / 100) % tex.getSize().x;
+
+      auto c = tex.getPixel(tx, ty);
+      bf.setPixel(x, y, c.r, c.g, c.b);
+      floorP = floorP + floorStep; // todo +=
+    }
+  }
+
+
   for (auto &a : sec.lines) {
     //v1 projection on view plane
     auto p1 = intersec(player.pos + player.dir,
@@ -108,11 +148,11 @@ void Game::renderSector(const Map::Sector &sec) {
                  a.sector->floorheight - player.height;
     auto bottom = player.height;
 
-    auto leftUpper = upper / v1DistProj;
-    auto rightUpper = upper / v2DistProj;
+    auto leftUpper = 2.0 * upper / v1DistProj; //2.0 - is 2 * plain.len / dir.len
+    auto rightUpper = 2.0 * upper / v2DistProj;
 
-    auto leftBottom = bottom / v1DistProj;
-    auto rightBottom = bottom / v2DistProj;
+    auto leftBottom = 2.0 * bottom / v1DistProj;
+    auto rightBottom = 2.0 * bottom / v2DistProj;
 
     //
     auto sp = player.pos + player.dir - player.plane;
@@ -120,16 +160,14 @@ void Game::renderSector(const Map::Sector &sec) {
     for (int i = leftCol; i < rightCol; ++i) {
       auto k = (double) (i - leftCol) / (rightCol - leftCol);
 
-      int16_t start = bf.getHeight() *
-                      (1 - ((1 - k) * leftUpper + k * rightUpper)) / 2.0;
+      int16_t start = (bf.getHeight() - bf.getWidth()*((1 - k) * leftUpper + k * rightUpper)) / 2.0;
 
-      int16_t finish = bf.getHeight() *
-                       (1 + ((1 - k) * leftBottom + k * rightBottom)) / 2.0;
+      int16_t finish = (bf.getHeight() + bf.getWidth()*((1 - k) * leftBottom + k * rightBottom)) / 2.0;
 
       auto fstart = fit(start, 0, bf.getHeight());
       auto ffinish = fit(finish, 0, bf.getHeight());
 
-      auto d = ((1 - k) * v1DistProj + k * v2DistProj) / 80.0;
+      auto d = 1;//((1 - k) * v1DistProj + k * v2DistProj) / 80.0;
 
       auto icp = sp + player.plane * (2.0 * i / bf.getWidth());
       auto its = intersec(player.pos, icp, v1, v2);

@@ -14,17 +14,18 @@ int main() {
 
   Map::Side side;
   side.middle = sf::Image();
-  side.middle.loadFromFile("../Resources/Textures/misha.jpg");
+  side.middle.loadFromFile("../Resources/Textures/ostap.jpg");
 
   side.top = Color(0, 255, 0);
   side.bottom = Color(0, 0, 255);
 
   Map::Sector sec;
 
-  sec.ceiling = Color(20, 20, 20);
-  sec.floor = Color(40, 40, 40);
-  sec.ceilingheight = 300;
-  sec.floorheight = -56;
+  sec.ceiling.loadFromFile("../Resources/Textures/texture.jpeg");
+  sec.floor.loadFromFile("../Resources/Textures/misha.jpg");
+
+  sec.ceilingheight = 200;
+  sec.floorheight = 0;
   sec.lightlevel = 60;
 
   map.sectors.push_back(sec);

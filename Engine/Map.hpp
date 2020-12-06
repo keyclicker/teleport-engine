@@ -77,8 +77,8 @@ struct Map::Sector {
   int floorheight = -64;
   int ceilingheight = 80;
 
-  Color floor; //Zaglushka
-  Color ceiling; //Zaglushka
+  sf::Image floor; //Zaglushka
+  sf::Image ceiling; //Zaglushka
 
   std::list<Line> lines;
 };
