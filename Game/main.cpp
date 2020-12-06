@@ -23,7 +23,7 @@ int main() {
 
   sec.ceiling = Color(20, 20, 20);
   sec.floor = Color(40, 40, 40);
-  sec.ceilingheight = 112;
+  sec.ceilingheight = 300;
   sec.floorheight = -56;
   sec.lightlevel = 60;
 

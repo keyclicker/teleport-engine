@@ -9,23 +9,27 @@ void Game::gameLoop() {
     auto ep = cl.restart().asSeconds();
 
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)) {
-      player.rotate(1 * ep);
+      player.rotate(2 * ep);
     }
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) {
-      player.rotate(-1 * ep);
+      player.rotate(-2 * ep);
     }
 
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
-      player.move(player.dir * (ep * 1000));
+      player.move(player.dir * (ep * 500));
+      player.shake(ep);
     }
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
-      player.move(-player.dir * (ep * 1000));
+      player.move(-player.dir * (ep * 500));
+      player.shake(ep);
     }
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
-      player.move(-player.plane * (ep * 1000));
+      player.move(-player.plane * (ep * 500));
+      player.shake(ep);
     }
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
-      player.move(player.plane * (ep * 1000));
+      player.move(player.plane * (ep * 500));
+      player.shake(ep);
     }
 
     static auto d = 0.0;
