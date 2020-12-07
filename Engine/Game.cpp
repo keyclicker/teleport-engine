@@ -45,8 +45,8 @@ void Game::gameLoop() {
     Clip clip{};
     clip.left = 0;
     clip.right = bf.getWidth();
-    clip.leftStart = clip.rightStart = 1;
-    clip.leftEnd = clip.rightEnd = 1;
+    clip.leftStart = clip.rightStart = bf.getHeight() / 2;
+    clip.leftEnd = clip.rightEnd = bf.getHeight() / 2;
 
     renderSector(map.sectors.front(), clip);
   }
@@ -99,8 +99,7 @@ void Game::renderFloorCeiling(const Map::Sector *sec, const Game::Clip &clip) {
 
     for (int x = clip.left; x < clip.right; ++x) {
       auto k = (double) (x - clip.left) / (clip.right - clip.left);
-
-      double start = (bf.getHeight() - bf.getWidth()*((1 - k) * clip.leftStart + k * clip.rightStart)) / 2.0;
+      double start = bf.getHeight() / 2.0 - ((1 - k) * clip.leftStart + k * clip.rightStart);
 
       if (y < start)  {
         floorP = floorP + floorStep;
@@ -127,8 +126,7 @@ void Game::renderFloorCeiling(const Map::Sector *sec, const Game::Clip &clip) {
 
     for (int x = clip.left; x < clip.right; ++x) {
       auto k = (double) (x - clip.left) / (clip.right - clip.left);
-
-      double finish = (bf.getHeight() + bf.getWidth()*((1 - k) * clip.leftEnd + k * clip.rightEnd)) / 2.0;
+      double finish = bf.getHeight() / 2.0 + ((1 - k) * clip.leftEnd + k * clip.rightEnd);
 
       if (y > finish)  {
         floorP = floorP + floorStep;
@@ -201,20 +199,26 @@ void Game::renderWalls(const Map::Sector *sec, const Game::Clip &clip, Map::Line
                  a->sector->floorheight - player.height;
     auto bottom = player.height - a->sector->floorheight;
 
-    auto leftStart = 2.0 * upper / v1DistProj; //2.0 - is 2 * plain.len / dir.len
-    auto rightStart = 2.0 * upper / v2DistProj;
+    auto leftStart = bf.getWidth() * upper / v1DistProj;
+    auto rightStart = bf.getWidth() * upper / v2DistProj;
 
-    auto leftEnd = 2.0 * bottom / v1DistProj;
-    auto rightEnd = 2.0 * bottom / v2DistProj;
+    auto leftEnd = bf.getWidth() * bottom / v1DistProj;
+    auto rightEnd = bf.getWidth() * bottom / v2DistProj;
 
     if (a->portal) {
       Clip cl{};
       cl.left = leftCol;
       cl.right = rightCol;
-      cl.leftStart = leftStart;
-      cl.leftEnd = leftEnd;
-      cl.rightStart = rightStart;
-      cl.rightEnd = rightEnd;
+
+      //todo check
+      auto dCeiling = bf.getWidth() * (sec->ceilingheight - a->portal->sector->ceilingheight +
+                                          a->portal->sector->floorheight - sec->floorheight);
+      auto dFloor = bf.getWidth() * (a->portal->sector->floorheight - sec->floorheight);
+
+      cl.leftStart = leftStart - dCeiling / v1DistProj;
+      cl.leftEnd = leftEnd - dFloor / v1DistProj;
+      cl.rightStart = rightStart - dCeiling / v2DistProj;
+      cl.rightEnd = rightEnd - dFloor / v2DistProj;
 
       renderSector(a->portal->sector, cl, a->portal);
     }
@@ -227,8 +231,8 @@ void Game::renderWalls(const Map::Sector *sec, const Game::Clip &clip, Map::Line
       for (int i = leftCol; i < rightCol; ++i) {
         auto k = (double) (i - leftCol) / (rightCol - leftCol);
 
-        double start = (bf.getHeight() - bf.getWidth()*((1 - k) * leftStart + k * rightStart)) / 2.0;
-        double finish = (bf.getHeight() + bf.getWidth()*((1 - k) * leftEnd + k * rightEnd)) / 2.0;
+        double start = bf.getHeight() / 2.0 - ((1 - k) * leftStart + k * rightStart);
+        double finish = bf.getHeight() / 2.0 + ((1 - k) * leftEnd + k * rightEnd);
 
         auto fstart = fit<int>(start, 0, bf.getHeight());
         auto ffinish = fit<int>(finish, 0, bf.getHeight());
