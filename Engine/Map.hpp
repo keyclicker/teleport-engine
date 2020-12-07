@@ -67,9 +67,9 @@ struct Map::Vertex {
 };
 
 struct Map::Side {
-  Color top; //Zaglushka
-  sf::Image middle; //Zaglushka
-  Color bottom; //Zaglushka
+  sf::Image upper;
+  sf::Image middle;
+  sf::Image lower;
 };
 
 

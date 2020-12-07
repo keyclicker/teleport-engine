@@ -9,14 +9,12 @@ int main() {
 
   auto portalSide = std::make_shared<Map::Side >();
 
-  portalSide->top = Color(0, 255, 0);
-  portalSide->bottom = Color(0, 0, 255);
+
+  portalSide->upper.loadFromFile("../Resources/Textures/brick.png");
+  portalSide->lower.loadFromFile("../Resources/Textures/brick.png");
 
   auto side1 = std::make_shared<Map::Side >();
   side1->middle.loadFromFile("../Resources/Textures/wall.gif");
-
-  side1->top = Color(0, 255, 0);
-  side1->bottom = Color(0, 0, 255);
 
   auto sec1 = new Map::Sector(map);
 
@@ -39,9 +37,6 @@ int main() {
   auto side2 = std::make_shared<Map::Side >();
   side2->middle = sf::Image();
   side2->middle.loadFromFile("../Resources/Textures/ostap.jpg");
-
-  side2->top = Color(0, 255, 0);
-  side2->bottom = Color(0, 0, 255);
 
   auto sec2 = new Map::Sector(map);
 

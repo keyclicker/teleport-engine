@@ -17,20 +17,43 @@ void Game::gameLoop() {
       player.rotate(-2 * ep);
     }
 
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad8)) {
+      player.move(player.dir * (ep * 30));
+    }
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad5)) {
+      player.move(-player.dir * (ep * 30));
+    }
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad4)) {
+      player.move(-player.plane * (ep * 30));
+    }
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad6)) {
+      player.move(player.plane * (ep * 30));
+    }
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad7)) {
+      player.rotate(0.2 * ep);
+    }
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad9)) {
+      player.rotate(-0.2 * ep);
+    }
+
+
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
       player.move(player.dir * (ep * 300));
-      player.shake(ep);
     }
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
       player.move(-player.dir * (ep * 300));
-      player.shake(ep);
     }
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
       player.move(-player.plane * (ep * 300));
-      player.shake(ep);
     }
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
       player.move(player.plane * (ep * 300));
+    }
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W) ||
+        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S) ||
+        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A) ||
+        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
       player.shake(ep);
     }
 
@@ -99,7 +122,8 @@ void Game::renderFloorCeiling(const Map::Sector *sec, const Game::Clip &clip) {
 
     for (int x = clip.left; x < clip.right; ++x) {
       auto k = (double) (x - clip.left) / (clip.right - clip.left);
-      double start = bf.getHeight() / 2.0 - ((1 - k) * clip.leftStart + k * clip.rightStart);
+      double start = bf.getHeight() / 2.0 - grad(clip.leftStart, clip.rightStart, k);
+
 
       if (y < start)  {
         floorP = floorP + floorStep;
@@ -126,7 +150,7 @@ void Game::renderFloorCeiling(const Map::Sector *sec, const Game::Clip &clip) {
 
     for (int x = clip.left; x < clip.right; ++x) {
       auto k = (double) (x - clip.left) / (clip.right - clip.left);
-      double finish = bf.getHeight() / 2.0 + ((1 - k) * clip.leftEnd + k * clip.rightEnd);
+      double finish = bf.getHeight() / 2.0 + grad(clip.leftEnd, clip.rightEnd, k);
 
       if (y > finish)  {
         floorP = floorP + floorStep;
@@ -186,78 +210,97 @@ void Game::renderWalls(const Map::Sector *sec, const Game::Clip &clip, Map::Line
     if (v1DistProj < 0 || v2DistProj < 0)
       continue;
 
-    //todo test
-    if (v1pl > v2pl) {
-      //std::swap(v1pl, v2pl); //todo check
-      //std::swap(v1, v2);
-    }
 
-    int16_t leftCol = fit<int>(bf.getWidth() * ((v1pl + 1) / 2.0), clip.left, clip.right);
-    int16_t rightCol = fit<int>(bf.getWidth() * ((v2pl + 1) / 2.0), clip.left, clip.right);
+    double leftCol = bf.getWidth() * ((v1pl + 1) / 2.0);
+    double rightCol = bf.getWidth() * ((v2pl + 1) / 2.0);
+
+    int16_t fLeftCol = fit<int>(leftCol, clip.left, clip.right);
+    int16_t fRightCol = fit<int>(rightCol, clip.left, clip.right);
+
 
     auto upper = a->sector->ceilingheight -
                  a->sector->floorheight - player.height;
     auto bottom = player.height - a->sector->floorheight;
 
-    auto leftStart = bf.getWidth() * upper / v1DistProj;
-    auto rightStart = bf.getWidth() * upper / v2DistProj;
+    int16_t leftStart = bf.getWidth() * upper / v1DistProj;
+    int16_t rightStart = bf.getWidth() * upper / v2DistProj;
 
-    auto leftEnd = bf.getWidth() * bottom / v1DistProj;
-    auto rightEnd = bf.getWidth() * bottom / v2DistProj;
+    int16_t leftEnd = bf.getWidth() * bottom / v1DistProj;
+    int16_t rightEnd = bf.getWidth() * bottom / v2DistProj;
 
     if (a->portal) {
-      Clip cl{};
-      cl.left = leftCol;
-      cl.right = rightCol;
+
 
       //todo check
       auto dCeiling = bf.getWidth() * (sec->ceilingheight - a->portal->sector->ceilingheight +
-                                          a->portal->sector->floorheight - sec->floorheight);
+                                       a->portal->sector->floorheight - sec->floorheight);
       auto dFloor = bf.getWidth() * (a->portal->sector->floorheight - sec->floorheight);
 
-      cl.leftStart = leftStart - dCeiling / v1DistProj;
-      cl.leftEnd = leftEnd - dFloor / v1DistProj;
-      cl.rightStart = rightStart - dCeiling / v2DistProj;
-      cl.rightEnd = rightEnd - dFloor / v2DistProj;
+
+      Clip cl{
+              fLeftCol, fRightCol, fLeftCol, fRightCol,//todo test
+              int16_t(leftStart - dCeiling / v1DistProj),
+              int16_t(leftEnd - dFloor / v1DistProj),
+              int16_t(rightStart - dCeiling / v2DistProj),
+              int16_t(rightEnd - dFloor / v2DistProj)
+      };
 
       renderSector(a->portal->sector, cl, a->portal);
+
+      Clip clUpper{
+              fLeftCol, fRightCol, leftCol, rightCol,//todo test
+              leftStart, -cl.leftStart, //todo why -
+              rightStart, -cl.rightStart,
+      };
+      renderPlain(sec, a, a->portal->side->upper, clUpper);
+
+      Clip clLower{
+              fLeftCol, fRightCol, leftCol, rightCol,//todo test
+              -cl.leftEnd, leftEnd,
+              -cl.rightEnd, rightEnd,
+      };
+      renderPlain(sec, a, a->portal->side->lower, clLower);
     }
 
-    //
-    auto sp = player.pos + player.dir - player.plane;
 
     //todo
     if (!a->portal) {
-      for (int i = leftCol; i < rightCol; ++i) {
-        auto k = (double) (i - leftCol) / (rightCol - leftCol);
-
-        double start = bf.getHeight() / 2.0 - ((1 - k) * leftStart + k * rightStart);
-        double finish = bf.getHeight() / 2.0 + ((1 - k) * leftEnd + k * rightEnd);
-
-        auto fstart = fit<int>(start, 0, bf.getHeight());
-        auto ffinish = fit<int>(finish, 0, bf.getHeight());
-
-        auto d = 1;//((1 - k) * v1DistProj + k * v2DistProj) / 80.0;
-
-
-        auto icp = sp + player.plane * (2.0 * i / bf.getWidth());
-        auto its = intersec(player.pos, icp, v1, v2);
-        auto tx = int((its - a->v1).length() * a->side->middle.getSize().x
-                      / (sec->ceilingheight - sec->floorheight)) % a->side->middle.getSize().x; //todo fix aspect ratio
-
-        auto &texture  = a->side->middle;
-
-        for (int j = fstart; j < ffinish; ++j) {
-          auto ty = int(texture.getSize().y * (j-start)/(finish-start)) % texture.getSize().y;
-          auto c = texture.getPixel(tx, ty);
-          bf.setPixel(i, j, fit(c.r/d, 0, 255),
-                      fit(c.g/d, 0, 255),
-                      fit(c.b/d, 0, 255));
-        }
-      }
+      Clip cl{
+              fLeftCol, fRightCol, leftCol, rightCol,//todo test
+              leftStart, leftEnd, rightStart, rightEnd,
+      };
+      renderPlain(sec, a, a->side->middle, cl);
     }
   }
 }
 
+  void Game::renderPlain(const Map::Sector *sec,
+                         const Map::Line *a, const sf::Image &texture, const Game::Clip &clip) {
+    auto sp = player.pos + player.dir - player.plane;
 
+    for (int i = clip.fLeft; i < clip.fRight; ++i) {
+      auto k = (double) (i - clip.left) / (clip.right - clip.left);
+
+      double start = bf.getHeight() / 2.0 - grad(clip.leftStart, clip.rightStart, k);
+      double finish = bf.getHeight() / 2.0 + grad(clip.leftEnd, clip.rightEnd, k);
+
+      auto fstart = fit<int>(start, 0, bf.getHeight());
+      auto ffinish = fit<int>(finish, 0, bf.getHeight());
+
+      auto d = 1;//((1 - k) * v1DistProj + k * v2DistProj) / 80.0;
+
+      auto icp = sp + player.plane * (2.0 * i / bf.getWidth());
+      auto its = intersec(player.pos, icp, a->v1, a->v2);
+      auto tx = int((its - a->v1).length() * texture.getSize().x
+                    / (sec->ceilingheight - sec->floorheight)) % texture.getSize().x; //todo fix aspect ratio and upper/lower
+
+      for (int j = fstart; j < ffinish; ++j) {
+        auto ty = int(texture.getSize().y * (j - start) / (finish - start)) % texture.getSize().y;
+        auto c = texture.getPixel(tx, ty);
+        bf.setPixel(i, j, fit(c.r / d, 0, 255),
+                    fit(c.g / d, 0, 255),
+                    fit(c.b / d, 0, 255));
+      }
+    }
+  }
 

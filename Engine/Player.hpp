@@ -33,7 +33,7 @@ public:
   }
 
   void shake(double sectime) {
-    shakeState += 7 * sectime;
+    shakeState += 12 * sectime;
     height = realHeight + 5.0 * std::sin(shakeState);
   }
 };
