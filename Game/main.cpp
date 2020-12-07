@@ -38,15 +38,15 @@ int main() {
 
   auto side2 = std::make_shared<Map::Side >();
   side2->middle = sf::Image();
-  side2->middle.loadFromFile("../Resources/Textures/wall.gif");
+  side2->middle.loadFromFile("../Resources/Textures/ostap.jpg");
 
   side2->top = Color(0, 255, 0);
   side2->bottom = Color(0, 0, 255);
 
   auto sec2 = new Map::Sector(map);
 
-  sec2->ceiling.loadFromFile("../Resources/Textures/ceiling.gif");
-  sec2->floor.loadFromFile("../Resources/Textures/floor.gif");
+  sec2->ceiling.loadFromFile("../Resources/Textures/misha.jpg");
+  sec2->floor.loadFromFile("../Resources/Textures/misha.jpg");
 
   sec2->ceilingheight = 150;
   sec2->floorheight = 20;

@@ -9,7 +9,7 @@ public:
   Map::Vertex dir = {1, 0};
   Map::Vertex plane = {0, -1};
 
-  int realHeight = 28;
+  int realHeight = 50;
   int height = 28;
   double shakeState = 0;
 

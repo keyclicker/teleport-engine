@@ -24,7 +24,13 @@ public:
   void gameLoop();
 
 private:
-  void renderSector(const Map::Sector *sec);
+  struct Clip {
+    int16_t left, right;
+    double leftStart, leftEnd;
+    double rightStart, rightEnd;
+  };
+
+  void renderSector(const Map::Sector *sec, const Clip &clip, Map::Line *portal = nullptr);
 
   static Map::Vertex intersec(const Map::Vertex &v1, const Map::Vertex &v2,
                        const Map::Vertex &v3, const Map::Vertex &v4);
@@ -32,5 +38,12 @@ private:
   static bool isVertexOnSeg(const Map::Vertex &v,
           const Map::Vertex &sv1, const Map::Vertex &sv2);
 
-  static int fit(int var, int a, int b);
+  template<typename T>
+  static int fit(T var, T a, T b) {
+    if (var < a)
+      return a;
+    if (var > b)
+      return b;
+    return var;
+  }
 };

@@ -42,28 +42,42 @@ void Game::gameLoop() {
       std::cout << 1.0/ep << std::endl;
     }
 
-    renderSector(map.sectors.front());
+    Clip cl;
+    cl.left = 0;
+    cl.right = bf.getWidth();
+    cl.leftStart = cl.rightStart = 1;
+    cl.leftEnd = cl.rightEnd = 1;
+
+    renderSector(map.sectors.front(), cl);
   }
 }
 
-void Game::renderSector(const Map::Sector *sec) {
-
+void Game::renderSector(const Map::Sector *sec, const Clip &clip, Map::Line *portal) {
   auto rayDirL = player.dir - player.plane;
   auto rayDirR = player.dir + player.plane;
 
-  auto posZ = player.height;
-  auto posZCeil = sec->ceilingheight - player.height ;
+  auto posZ = player.height - sec->floorheight;
+  auto posZCeil = sec->ceilingheight - sec->floorheight - player.height;
 
   for (int y = 0; y < bf.getHeight() / 2; ++y) {
     double p = (double)(bf.getHeight() / 2 - y) / bf.getWidth();
     double rowDistance = (double) posZCeil / p;
 
     auto floorStep = (rowDistance / bf.getWidth()) * (rayDirR - rayDirL);
-    auto floorP = player.pos + rowDistance * rayDirL;
+    auto floorP = player.pos + rowDistance * rayDirL + floorStep * clip.left;
 
     auto &tex = sec->ceiling;
 
-    for (int x = 0; x < bf.getWidth(); ++x) {
+    for (int x = clip.left; x < clip.right; ++x) {
+      auto k = (double) (x - clip.left) / (clip.right - clip.left);
+
+      double start = (bf.getHeight() - bf.getWidth()*((1 - k) * clip.leftStart + k * clip.rightStart)) / 2.0;
+
+      if (y < start)  {
+        floorP = floorP + floorStep;
+        continue;
+      }
+
       int ty = int(floorP.y * tex.getSize().y / 100) % tex.getSize().y;
       int tx = int(floorP.x * tex.getSize().x / 100) % tex.getSize().x;
 
@@ -78,11 +92,20 @@ void Game::renderSector(const Map::Sector *sec) {
     double rowDistance = (double) posZ / p;
 
     auto floorStep = (rowDistance / bf.getWidth()) * (rayDirR - rayDirL);
-    auto floorP = player.pos + rowDistance * rayDirL;
+    auto floorP = player.pos + rowDistance * rayDirL + floorStep * clip.left;;
 
     auto &tex = sec->floor;
 
-    for (int x = 0; x < bf.getWidth(); ++x) {
+    for (int x = clip.left; x < clip.right; ++x) {
+      auto k = (double) (x - clip.left) / (clip.right - clip.left);
+
+      double finish = (bf.getHeight() + bf.getWidth()*((1 - k) * clip.leftEnd + k * clip.rightEnd)) / 2.0;
+
+      if (y > finish)  {
+        floorP = floorP + floorStep;
+        continue;
+      }
+
       int ty = int(floorP.y * tex.getSize().y / 100) % tex.getSize().y;
       int tx = int(floorP.x * tex.getSize().x / 100) % tex.getSize().x;
 
@@ -94,6 +117,8 @@ void Game::renderSector(const Map::Sector *sec) {
 
 
   for (auto &a : sec->lines) {
+    if (a.get() == portal) continue;
+
     //v1 projection on view plane
     auto p1 = intersec(player.pos + player.dir,
                        player.pos + player.dir + player.plane, player.pos, a->v1);
@@ -137,24 +162,31 @@ void Game::renderSector(const Map::Sector *sec) {
     if (v1pl > v2pl) {
       //std::swap(v1pl, v2pl); //todo check
       //std::swap(v1, v2);
-      continue;
     }
 
-    int16_t leftCol = bf.getWidth() * ((v1pl + 1) / 2.0);
-    int16_t rightCol = bf.getWidth() * ((v2pl + 1) / 2.0);
+    int16_t leftCol = fit<int>(bf.getWidth() * ((v1pl + 1) / 2.0), clip.left, clip.right);
+    int16_t rightCol = fit<int>(bf.getWidth() * ((v2pl + 1) / 2.0), clip.left, clip.right);
 
     auto upper = a->sector->ceilingheight -
                  a->sector->floorheight - player.height;
-    auto bottom = player.height;
+    auto bottom = player.height - a->sector->floorheight;
 
-    auto leftUpper = 2.0 * upper / v1DistProj; //2.0 - is 2 * plain.len / dir.len
-    auto rightUpper = 2.0 * upper / v2DistProj;
+    auto leftStart = 2.0 * upper / v1DistProj; //2.0 - is 2 * plain.len / dir.len
+    auto rightStart = 2.0 * upper / v2DistProj;
 
-    auto leftBottom = 2.0 * bottom / v1DistProj;
-    auto rightBottom = 2.0 * bottom / v2DistProj;
+    auto leftEnd = 2.0 * bottom / v1DistProj;
+    auto rightEnd = 2.0 * bottom / v2DistProj;
 
     if (a->portal) {
-      renderSector(a->portal->sector);
+      Clip cl;
+      cl.left = leftCol;
+      cl.right = rightCol;
+      cl.leftStart = leftStart;
+      cl.leftEnd = leftEnd;
+      cl.rightStart = rightStart;
+      cl.rightEnd = rightEnd;
+
+      renderSector(a->portal->sector, cl, a->portal);
     }
 
     //
@@ -165,12 +197,11 @@ void Game::renderSector(const Map::Sector *sec) {
       for (int i = leftCol; i < rightCol; ++i) {
         auto k = (double) (i - leftCol) / (rightCol - leftCol);
 
-        double start = (bf.getHeight() - bf.getWidth()*((1 - k) * leftUpper + k * rightUpper)) / 2.0;
+        double start = (bf.getHeight() - bf.getWidth()*((1 - k) * leftStart + k * rightStart)) / 2.0;
+        double finish = (bf.getHeight() + bf.getWidth()*((1 - k) * leftEnd + k * rightEnd)) / 2.0;
 
-        double finish = (bf.getHeight() + bf.getWidth()*((1 - k) * leftBottom + k * rightBottom)) / 2.0;
-
-        auto fstart = fit(start, 0, bf.getHeight());
-        auto ffinish = fit(finish, 0, bf.getHeight());
+        auto fstart = fit<int>(start, 0, bf.getHeight());
+        auto ffinish = fit<int>(finish, 0, bf.getHeight());
 
         auto d = 1;//((1 - k) * v1DistProj + k * v2DistProj) / 80.0;
 
@@ -226,10 +257,5 @@ bool Game::isVertexOnSeg(const Map::Vertex &v,
          v.y < std::max(sv1.y, sv2.y);
 }
 
-int Game::fit(int var, int a, int b) {
-  if (var < a)
-    return a;
-  if (var > b)
-    return b;
-  return var;
-}
+
+
