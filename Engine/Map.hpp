@@ -1,9 +1,11 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <utility>
 #include <vector>
 #include <list>
 #include <cmath>
 #include <cstdint>
+#include <memory>
 
 //temporary
 struct Color {
@@ -20,7 +22,13 @@ public:
   struct Side;
   struct Sector;
 
-  std::list<Sector> sectors;
+  std::vector<Sector*> sectors;
+
+  ~Map() {
+    for (auto a: sectors) {
+      delete a;
+    }
+  }
 };
 
 struct Map::Vertex {
@@ -29,7 +37,7 @@ struct Map::Vertex {
   Vertex() = default;
   Vertex(double x, double y) : x(x), y(y) {}
 
-  double length() {
+  double length() const {
     return std::hypot(x, y);
   }
 
@@ -65,12 +73,6 @@ struct Map::Side {
 };
 
 
-struct Map::Line {
-  Vertex v1, v2;
-  Side side;
-  Line *portal;
-  Sector *sector;
-};
 
 struct Map::Sector {
   short	lightlevel = 60;
@@ -80,5 +82,24 @@ struct Map::Sector {
   sf::Image floor; //Zaglushka
   sf::Image ceiling; //Zaglushka
 
-  std::list<Line> lines;
+  std::vector<std::unique_ptr<Line>> lines;
+
+  Sector() = default;
+  explicit Sector(Map &map) {
+    map.sectors.push_back(this);
+  }
+};
+
+struct Map::Line {
+  Vertex v1, v2;
+  std::shared_ptr<Side> side;
+  Line *portal;
+  Sector *sector;
+
+  Line(): sector(nullptr), portal(nullptr), v1(Vertex()), v2(Vertex()), side(nullptr)  {}
+
+  Line(Sector *sector, Vertex v1, Vertex v2, std::shared_ptr<Side> side):
+          sector(sector), v1(v1), v2(v2), side(std::move(side)), portal(nullptr) {
+    sector->lines.push_back(std::unique_ptr<Line>(this));
+  }
 };

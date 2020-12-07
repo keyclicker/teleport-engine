@@ -17,14 +17,14 @@ public:
   Game(uint16_t width, uint16_t height, char *str):
     bf(Buffer(width, height, str)) {}
 
-  void setMap(const Map &m) { //Temp
+  void setMap(const Map &m) { //todo move
     map = m;
   }
 
   void gameLoop();
 
 private:
-  void renderSector(const Map::Sector &sec);
+  void renderSector(const Map::Sector *sec);
 
   static Map::Vertex intersec(const Map::Vertex &v1, const Map::Vertex &v2,
                        const Map::Vertex &v3, const Map::Vertex &v4);

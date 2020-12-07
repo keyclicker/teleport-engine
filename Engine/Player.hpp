@@ -8,6 +8,7 @@ public:
   Map::Vertex pos = {0, 0};
   Map::Vertex dir = {1, 0};
   Map::Vertex plane = {0, -1};
+
   int realHeight = 28;
   int height = 28;
   double shakeState = 0;
@@ -23,7 +24,6 @@ public:
   }
 
   void move(double dx, double dy) {
-
     pos.x += dx;
     pos.y += dy;
   }

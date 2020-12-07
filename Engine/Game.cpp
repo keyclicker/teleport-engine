@@ -42,17 +42,17 @@ void Game::gameLoop() {
       std::cout << 1.0/ep << std::endl;
     }
 
-    renderSector(map.sectors.back());
+    renderSector(map.sectors.front());
   }
 }
 
-void Game::renderSector(const Map::Sector &sec) {
+void Game::renderSector(const Map::Sector *sec) {
 
   auto rayDirL = player.dir - player.plane;
   auto rayDirR = player.dir + player.plane;
 
   auto posZ = player.height;
-  auto posZCeil = sec.ceilingheight - player.height ;
+  auto posZCeil = sec->ceilingheight - player.height ;
 
   for (int y = 0; y < bf.getHeight() / 2; ++y) {
     double p = (double)(bf.getHeight() / 2 - y) / bf.getWidth();
@@ -61,7 +61,7 @@ void Game::renderSector(const Map::Sector &sec) {
     auto floorStep = (rowDistance / bf.getWidth()) * (rayDirR - rayDirL);
     auto floorP = player.pos + rowDistance * rayDirL;
 
-    auto &tex = sec.ceiling;
+    auto &tex = sec->ceiling;
 
     for (int x = 0; x < bf.getWidth(); ++x) {
       int ty = int(floorP.y * tex.getSize().y / 100) % tex.getSize().y;
@@ -80,7 +80,7 @@ void Game::renderSector(const Map::Sector &sec) {
     auto floorStep = (rowDistance / bf.getWidth()) * (rayDirR - rayDirL);
     auto floorP = player.pos + rowDistance * rayDirL;
 
-    auto &tex = sec.floor;
+    auto &tex = sec->floor;
 
     for (int x = 0; x < bf.getWidth(); ++x) {
       int ty = int(floorP.y * tex.getSize().y / 100) % tex.getSize().y;
@@ -93,14 +93,14 @@ void Game::renderSector(const Map::Sector &sec) {
   }
 
 
-  for (auto &a : sec.lines) {
+  for (auto &a : sec->lines) {
     //v1 projection on view plane
     auto p1 = intersec(player.pos + player.dir,
-                       player.pos + player.dir + player.plane, player.pos, a.v1);
+                       player.pos + player.dir + player.plane, player.pos, a->v1);
 
     //v2 projection on view plane
     auto p2 = intersec(player.pos + player.dir,
-                       player.pos + player.dir + player.plane, player.pos, a.v2);
+                       player.pos + player.dir + player.plane, player.pos, a->v2);
 
 
     //calculating wall start and end on plane
@@ -108,22 +108,22 @@ void Game::renderSector(const Map::Sector &sec) {
     auto v2pl = (p2 - (player.pos + player.dir)) * player.plane / player.plane.length();
 
     //calculating distances to the wall's start and end
-    auto v1DistProj = (a.v1 - player.pos) * player.dir / player.dir.length();
-    auto v2DistProj = (a.v2 - player.pos) * player.dir / player.dir.length();
+    auto v1DistProj = (a->v1 - player.pos) * player.dir / player.dir.length();
+    auto v2DistProj = (a->v2 - player.pos) * player.dir / player.dir.length();
 
-    auto v1 = a.v1;
-    auto v2 = a.v2;
+    auto v1 = a->v1;
+    auto v2 = a->v2;
 
     //if wall start and end are out of screen, casts two view rays
-    if (v1pl < -1 || v1DistProj < 0) {
+    if (v1pl < -1 || v1DistProj <= 0) {
       v1pl = -1;
-      v1 = intersec(player.pos, player.pos + player.dir - player.plane, a.v1, a.v2);
+      v1 = intersec(player.pos, player.pos + player.dir - player.plane, a->v1, a->v2);
       v1DistProj = (v1 - player.pos) * player.dir / player.dir.length();
     }
 
-    if (v2pl > 1 || v2DistProj < 0) {
+    if (v2pl > 1 || v2DistProj <= 0) {
       v2pl = 1;
-      v2 = intersec(player.pos, player.pos + player.dir + player.plane, a.v1, a.v2);
+      v2 = intersec(player.pos, player.pos + player.dir + player.plane, a->v1, a->v2);
       v2DistProj = (v2 - player.pos) * player.dir / player.dir.length();
     }
 
@@ -133,19 +133,18 @@ void Game::renderSector(const Map::Sector &sec) {
     if (v1DistProj < 0 || v2DistProj < 0)
       continue;
 
-    //for safety
+    //todo test
     if (v1pl > v2pl) {
-      std::swap(v1pl, v2pl); //todo check
-      std::swap(v1, v2);
+      //std::swap(v1pl, v2pl); //todo check
+      //std::swap(v1, v2);
+      continue;
     }
-
 
     int16_t leftCol = bf.getWidth() * ((v1pl + 1) / 2.0);
     int16_t rightCol = bf.getWidth() * ((v2pl + 1) / 2.0);
 
-
-    auto upper = a.sector->ceilingheight -
-                 a.sector->floorheight - player.height;
+    auto upper = a->sector->ceilingheight -
+                 a->sector->floorheight - player.height;
     auto bottom = player.height;
 
     auto leftUpper = 2.0 * upper / v1DistProj; //2.0 - is 2 * plain.len / dir.len
@@ -154,35 +153,44 @@ void Game::renderSector(const Map::Sector &sec) {
     auto leftBottom = 2.0 * bottom / v1DistProj;
     auto rightBottom = 2.0 * bottom / v2DistProj;
 
+    if (a->portal) {
+      renderSector(a->portal->sector);
+    }
+
     //
     auto sp = player.pos + player.dir - player.plane;
 
-    for (int i = leftCol; i < rightCol; ++i) {
-      auto k = (double) (i - leftCol) / (rightCol - leftCol);
+    //todo
+    if (!a->portal) {
+      for (int i = leftCol; i < rightCol; ++i) {
+        auto k = (double) (i - leftCol) / (rightCol - leftCol);
 
-      int16_t start = (bf.getHeight() - bf.getWidth()*((1 - k) * leftUpper + k * rightUpper)) / 2.0;
+        double start = (bf.getHeight() - bf.getWidth()*((1 - k) * leftUpper + k * rightUpper)) / 2.0;
 
-      int16_t finish = (bf.getHeight() + bf.getWidth()*((1 - k) * leftBottom + k * rightBottom)) / 2.0;
+        double finish = (bf.getHeight() + bf.getWidth()*((1 - k) * leftBottom + k * rightBottom)) / 2.0;
 
-      auto fstart = fit(start, 0, bf.getHeight());
-      auto ffinish = fit(finish, 0, bf.getHeight());
+        auto fstart = fit(start, 0, bf.getHeight());
+        auto ffinish = fit(finish, 0, bf.getHeight());
 
-      auto d = 1;//((1 - k) * v1DistProj + k * v2DistProj) / 80.0;
+        auto d = 1;//((1 - k) * v1DistProj + k * v2DistProj) / 80.0;
 
-      auto icp = sp + player.plane * (2.0 * i / bf.getWidth());
-      auto its = intersec(player.pos, icp, v1, v2);
-      auto tx = (its - a.v1).length() * 5.0;
 
-      for (int j = fstart; j < ffinish; ++j) {
-        auto ty = a.side.middle.getSize().y * (j-start)/(finish-start);
-        auto c = a.side.middle.getPixel(tx, ty);
-        bf.setPixel(i, j, fit(c.r/d, 0, 255),
-                    fit(c.g/d, 0, 255),
-                    fit(c.b/d, 0, 255));
-      }
+          auto icp = sp + player.plane * (2.0 * i / bf.getWidth());
+          auto its = intersec(player.pos, icp, v1, v2);
+          auto tx = int((its - a->v1).length() * a->side->middle.getSize().x
+                        / (sec->ceilingheight - sec->floorheight)) % a->side->middle.getSize().x; //todo fix aspect ratio
 
+          auto &texture  = a->side->middle;
+
+          for (int j = fstart; j < ffinish; ++j) {
+            auto ty = int(texture.getSize().y * (j-start)/(finish-start)) % texture.getSize().y;
+            auto c = texture.getPixel(tx, ty);
+            bf.setPixel(i, j, fit(c.r/d, 0, 255),
+                        fit(c.g/d, 0, 255),
+                        fit(c.b/d, 0, 255));
+          }
+        }
     }
-
   }
 }
 
