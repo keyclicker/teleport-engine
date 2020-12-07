@@ -4,14 +4,17 @@
 #include <cmath>
 
 class Player {
+private:
+  double realHeight = 28;
+  double height = 28;
+  double shakeState = 0;
+  double shakeSpeed = 2;
+  double shakeD = 5;
+
 public:
   Map::Vertex pos = {0, 0};
   Map::Vertex dir = {1, 0};
   Map::Vertex plane = {0, -1};
-
-  double realHeight = 28;
-  double height = 28;
-  double shakeState = 0;
 
   void rotate(double angle) {
     auto oldDir = dir;
@@ -33,7 +36,37 @@ public:
   }
 
   void shake(double sectime) {
-    shakeState += 12 * sectime;
-    height = realHeight + 5.0 * std::sin(shakeState);
+    shakeState += 2.0 * M_PI * shakeSpeed * sectime;
+    height = realHeight + shakeD * std::sin(shakeState);
+  }
+
+
+  double getHeight() const {
+    return height;
+  }
+  void setHeight(double height) {
+    Player::height = height;
+    Player::realHeight = height;
+  }
+
+  double getShakeState() const {
+    return shakeState;
+  }
+  void setShakeState(double shakeState) {
+    Player::shakeState = shakeState;
+  }
+
+  double getShakeSpeed() const {
+    return shakeSpeed;
+  }
+  void setShakeSpeed(double shakeSpeed) {
+    Player::shakeSpeed = shakeSpeed;
+  }
+
+  double getShakeD() const {
+    return shakeD;
+  }
+  void setShakeD(double shakeD) {
+    Player::shakeD = shakeD;
   }
 };

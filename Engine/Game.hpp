@@ -10,6 +10,8 @@ private:
   Player player;
   Buffer bf;
 
+  Map::Sector *activeSector;
+
 public:
   Game(const Game &game) = delete;
   Game &operator=(const Game &game) = delete;
@@ -19,11 +21,9 @@ public:
 
   void setMap(const Map &m) { //todo move
     map = m;
+    activeSector = map.sectors.front();
   }
 
-  void gameLoop();
-
-private:
   struct Clip {
     int16_t fLeft, fRight; //todo change design
     double left, right;
@@ -31,13 +31,24 @@ private:
     int16_t rightStart, rightEnd;
   };
 
+
+  void gameLoop();
+  void renderFloor(const Map::Sector *sec, const Clip &clip);
+  void renderCeiling(const Map::Sector *sec, const Clip &clip);
+
+private:
+  void move(const Map::Vertex &mv);
   void renderSector(const Map::Sector *sec, const Clip &clip, Map::Line *portal = nullptr);
-  void renderFloorCeiling(const Map::Sector *sec, const Clip &clip);
   void renderWalls(const Map::Sector *sec, const Clip &clip, Map::Line *portal);
   void renderPlain(const Map::Sector *sec, const Map::Line *a, const sf::Image &tex, const Game::Clip &clip);
 
   static Map::Vertex intersec(const Map::Vertex &v1, const Map::Vertex &v2,
                        const Map::Vertex &v3, const Map::Vertex &v4);
+
+
+  Map::Line *collidedLine(const Map::Vertex &pos);
+  static bool side(const Map::Vertex &v1, const Map::Vertex &v2, const Map::Vertex &v3);
+  static double dist(const Map::Vertex &v1, const Map::Vertex &v2, const Map::Vertex &v3);
 
   template<typename T>
   static double grad(T a, T b, double k) {
