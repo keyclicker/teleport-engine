@@ -76,17 +76,23 @@ struct Map::Side {
 
 struct Map::Sector {
   short	lightlevel = 60;
-  int floorheight = -64;
-  int ceilingheight = 80;
+  double floorheight = -64;
+  double ceilingheight = 80;
 
   sf::Image floor; //Zaglushka
   sf::Image ceiling; //Zaglushka
 
-  std::vector<std::unique_ptr<Line>> lines;
+  std::vector<Line*> lines;
 
   Sector() = default;
   explicit Sector(Map &map) {
     map.sectors.push_back(this);
+  }
+
+  ~Sector() {
+    for (auto a: lines) {
+      delete a;
+    }
   }
 };
 
@@ -100,6 +106,6 @@ struct Map::Line {
 
   Line(Sector *sector, Vertex v1, Vertex v2, std::shared_ptr<Side> side):
           sector(sector), v1(v1), v2(v2), side(std::move(side)), portal(nullptr) {
-    sector->lines.push_back(std::unique_ptr<Line>(this));
+    sector->lines.push_back(this);
   }
 };

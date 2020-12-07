@@ -31,6 +31,8 @@ private:
   };
 
   void renderSector(const Map::Sector *sec, const Clip &clip, Map::Line *portal = nullptr);
+  void renderFloorCeiling(const Map::Sector *sec, const Clip &clip);
+  void renderWalls(const Map::Sector *sec, const Clip &clip, Map::Line *portal);
 
   static Map::Vertex intersec(const Map::Vertex &v1, const Map::Vertex &v2,
                        const Map::Vertex &v3, const Map::Vertex &v4);
