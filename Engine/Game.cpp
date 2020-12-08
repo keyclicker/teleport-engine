@@ -136,6 +136,8 @@ void Game::renderFloor(const Map::Sector *sec, const Game::Clip &clip) {
 
     auto &tex = sec->floor;
 
+    auto d = deepFunc(rowDistance);
+
     for (int x = clip.left; x < clip.right; ++x) {
       auto k = (double) (x - clip.left) / (clip.right - clip.left);
       double finish = bf.getHeight() / 2.0 + grad(clip.leftEnd, clip.rightEnd, k);
@@ -149,7 +151,8 @@ void Game::renderFloor(const Map::Sector *sec, const Game::Clip &clip) {
       uint16_t tx = int(floorP.x * tex.getSize().x / 100) % tex.getSize().x;
 
       auto c = tex.getPixel(tx, ty);
-      bf.setPixel(x, y, c.r, c.g, c.b);
+      c.a = 255 * d;
+      bf.setPixel(x, y, c);
       floorP = floorP + floorStep; // todo +=
     }
   }
@@ -169,10 +172,11 @@ void Game::renderCeiling(const Map::Sector *sec, const Game::Clip &clip) {
 
     auto &tex = sec->ceiling;
 
+    auto d = deepFunc(rowDistance);
+
     for (int x = clip.left; x < clip.right; ++x) {
       auto k = (double) (x - clip.left) / (clip.right - clip.left);
       double start = bf.getHeight() / 2.0 - grad(clip.leftStart, clip.rightStart, k);
-
 
       if (y < start)  {
         floorP = floorP + floorStep;
@@ -183,7 +187,8 @@ void Game::renderCeiling(const Map::Sector *sec, const Game::Clip &clip) {
       uint16_t tx = int(floorP.x * tex.getSize().x / 100.0) % tex.getSize().x;
 
       auto c = tex.getPixel(tx, ty);
-      bf.setPixel(x, y, c.r, c.g, c.b);
+      c.a = 255 * d;
+      bf.setPixel(x, y, c);
       floorP = floorP + floorStep; // todo +=
     }
   }
@@ -234,8 +239,8 @@ void Game::renderWalls(const Map::Sector *sec, const Game::Clip &clip, Map::Line
 
     if (side(a->v1, a->v2, player.pos)) continue;
 
-    double leftCol = bf.getWidth() * ((v1pl + 1) / 2.0);
-    double rightCol = bf.getWidth() * ((v2pl + 1) / 2.0);
+    int16_t leftCol = bf.getWidth() * ((v1pl + 1) / 2.0);
+    int16_t rightCol = bf.getWidth() * ((v2pl + 1) / 2.0);
 
     int16_t fLeftCol = fit<int>(leftCol, clip.left, clip.right);
     int16_t fRightCol = fit<int>(rightCol, clip.left, clip.right);
@@ -246,11 +251,11 @@ void Game::renderWalls(const Map::Sector *sec, const Game::Clip &clip, Map::Line
     auto bottom = player.getHeight() - a->sector->floorheight
             + activeSector->floorheight;
 
-    int16_t leftStart = bf.getWidth() * upper / v1DistProj;
-    int16_t rightStart = bf.getWidth() * upper / v2DistProj;
+    double leftStart = (double) bf.getWidth() * upper / v1DistProj;
+    double rightStart = (double) bf.getWidth() * upper / v2DistProj;
 
-    int16_t leftEnd = bf.getWidth() * bottom / v1DistProj;
-    int16_t rightEnd = bf.getWidth() * bottom / v2DistProj;
+    double leftEnd = (double) bf.getWidth() * bottom / v1DistProj;
+    double rightEnd = (double) bf.getWidth() * bottom / v2DistProj;
 
     if (a->portal) {
       //todo check
@@ -258,13 +263,15 @@ void Game::renderWalls(const Map::Sector *sec, const Game::Clip &clip, Map::Line
                                        a->portal->sector->floorheight - sec->floorheight);
       auto dFloor = bf.getWidth() * (a->portal->sector->floorheight - sec->floorheight);
 
+      if (dCeiling < 0) dCeiling = 0;
+      if (dFloor < 0) dFloor = 0;
 
       Clip cl{
               fLeftCol, fRightCol, fLeftCol, fRightCol,//todo test
-              int16_t(leftStart - dCeiling / v1DistProj),
-              int16_t(leftEnd - dFloor / v1DistProj),
-              int16_t(rightStart - dCeiling / v2DistProj),
-              int16_t(rightEnd - dFloor / v2DistProj)
+              leftStart - dCeiling / v1DistProj,
+              leftEnd - dFloor / v1DistProj,
+              rightStart - dCeiling / v2DistProj,
+              rightEnd - dFloor / v2DistProj
       };
 
       renderSector(a->portal->sector, cl, a->portal);
@@ -275,7 +282,8 @@ void Game::renderWalls(const Map::Sector *sec, const Game::Clip &clip, Map::Line
               leftStart, -cl.leftStart, //todo why -
               rightStart, -cl.rightStart,
       };
-      renderPlain(sec, a, a->portal->side->upper, clUpper);
+      renderPlain(sec, a, v1DistProj, v2DistProj,
+                  a->portal->side->upper, clUpper, clip);
       //auto upperThr = std::async(&Game::renderPlain, this, sec, a, a->portal->side->upper, clUpper);
 
       Clip clLower{
@@ -283,7 +291,8 @@ void Game::renderWalls(const Map::Sector *sec, const Game::Clip &clip, Map::Line
               -cl.leftEnd, leftEnd,
               -cl.rightEnd, rightEnd,
       };
-      renderPlain(sec, a, a->portal->side->lower, clLower);
+      renderPlain(sec, a, v1DistProj, v2DistProj,
+                  a->portal->side->lower, clLower, clip);
     }
 
 
@@ -293,37 +302,44 @@ void Game::renderWalls(const Map::Sector *sec, const Game::Clip &clip, Map::Line
               fLeftCol, fRightCol, leftCol, rightCol,//todo test
               leftStart, leftEnd, rightStart, rightEnd,
       };
-      renderPlain(sec, a, a->side->middle, cl);
+      renderPlain(sec, a, v1DistProj, v2DistProj,
+                  a->side->middle, cl, clip); //todo fix clips names
     }
   }
 }
 
-  void Game::renderPlain(const Map::Sector *sec,
-                         const Map::Line *a, const sf::Image &texture, const Game::Clip &clip) {
+  void Game::renderPlain(const Map::Sector *sec, const Map::Line *a, double v1Dist, double v2Dist,
+                         const sf::Image &texture, const Game::Clip &clip, const Game::Clip &fclip) {
     auto sp = player.pos + player.dir - player.plane;
 
     for (int i = clip.fLeft; i < clip.fRight; ++i) {
       auto k = (double) (i - clip.left) / (clip.right - clip.left);
+      auto kClip = (double) (i - fclip.left) / (fclip.right - fclip.left);
 
       double start = bf.getHeight() / 2.0 - grad(clip.leftStart, clip.rightStart, k);
       double finish = bf.getHeight() / 2.0 + grad(clip.leftEnd, clip.rightEnd, k);
 
-      auto fstart = fit<int>(start, 0, bf.getHeight());
-      auto ffinish = fit<int>(finish, 0, bf.getHeight());
+      double sClip = bf.getHeight() / 2.0 - grad(fclip.leftStart, fclip.rightStart, kClip);
+      double fClip = bf.getHeight() / 2.0 + grad(fclip.leftEnd, fclip.rightEnd, kClip);
 
-      auto d = 1;//((1 - k) * v1DistProj + k * v2DistProj) / 80.0;
+      //todo make this look less awful
+      auto fstart = fit<double>(fit<double>(start, sClip, fClip), 0, bf.getHeight());
+      auto ffinish = fit<double>(fit<double>(finish, sClip, fClip), 0, bf.getHeight());
+
+
 
       auto icp = sp + player.plane * (2.0 * i / bf.getWidth());
       auto its = intersec(player.pos, icp, a->v1, a->v2);
       auto tx = int((its - a->v1).length() * texture.getSize().x
                     / (sec->ceilingheight - sec->floorheight)) % texture.getSize().x; //todo fix aspect ratio and upper/lower
 
+      auto d = deepFunc((its-player.pos).length());
+
       for (int j = fstart; j < ffinish; ++j) {
         auto ty = int(texture.getSize().y * (j - start) / (finish - start)) % texture.getSize().y;
         auto c = texture.getPixel(tx, ty);
-        bf.setPixel(i, j, fit(c.r / d, 0, 255),
-                    fit(c.g / d, 0, 255),
-                    fit(c.b / d, 0, 255));
+        c.a = 255 * d;
+        bf.setPixel(i, j, c);
       }
     }
   }
@@ -331,7 +347,7 @@ void Game::renderWalls(const Map::Sector *sec, const Game::Clip &clip, Map::Line
 Map::Line *Game::collidedLine(const Map::Vertex &pos) {
   for (auto &a: activeSector->lines) {
     auto d = dist(a->v1, a->v2, pos);
-    if ((d <= 20 && !a->portal) || (d < 0 && a->portal)) {
+    if ((d <= 20 && !a->portal) || (d <= 4 && a->portal)) { //todo think on better plane bug solution
       return a;
     }
   }
@@ -361,7 +377,10 @@ void Game::move(const Map::Vertex &mv) {
     player.move(mv);
   }
   else if (cl->portal) {
-    player.move(mv);
+    //todo think on better plane bug solution
+    auto vcl = cl->v2 - cl->v1;
+    auto per = Map::Vertex(-vcl.y, vcl.x) / (vcl.length()/8.0);
+    player.move(per + mv);
     activeSector = cl->portal->sector;
   }
   else {

@@ -26,9 +26,9 @@ public:
 
   struct Clip {
     int16_t fLeft, fRight; //todo change design
-    double left, right;
-    int16_t leftStart, leftEnd;
-    int16_t rightStart, rightEnd;
+    int16_t left, right;
+    double leftStart, leftEnd;
+    double rightStart, rightEnd;
   };
 
 
@@ -40,7 +40,8 @@ private:
   void move(const Map::Vertex &mv);
   void renderSector(const Map::Sector *sec, const Clip &clip, Map::Line *portal = nullptr);
   void renderWalls(const Map::Sector *sec, const Clip &clip, Map::Line *portal);
-  void renderPlain(const Map::Sector *sec, const Map::Line *a, const sf::Image &tex, const Game::Clip &clip);
+  void renderPlain(const Map::Sector *sec, const Map::Line *a, double v1Dist, double v2Dist,
+                   const sf::Image &tex, const Game::Clip &clip, const Game::Clip &fclip);
 
   static Map::Vertex intersec(const Map::Vertex &v1, const Map::Vertex &v2,
                        const Map::Vertex &v3, const Map::Vertex &v4);
@@ -49,6 +50,12 @@ private:
   Map::Line *collidedLine(const Map::Vertex &pos);
   static bool side(const Map::Vertex &v1, const Map::Vertex &v2, const Map::Vertex &v3);
   static double dist(const Map::Vertex &v1, const Map::Vertex &v2, const Map::Vertex &v3);
+
+  static double deepFunc(double dist) {
+    auto d = 100.0 / dist;
+    d = fit(0.05 + d * 0.95, 0.0, 1.0);
+    return 1;
+  }
 
   template<typename T>
   static double grad(T a, T b, double k) {

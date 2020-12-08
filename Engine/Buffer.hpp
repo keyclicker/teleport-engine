@@ -31,6 +31,10 @@ public:
     image.setPixel(x, y, sf::Color(r, g, b));
   }
 
+  void setPixel(uint16_t x, uint16_t y, const sf::Color &color) {
+    image.setPixel(x, y, color);
+  }
+
   bool isOpen() {
     texture.loadFromImage(image);
     sprite.setTexture(texture);
