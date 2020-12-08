@@ -80,21 +80,30 @@ void Game::gameLoop() {
     clip.leftStart = clip.rightStart = bf.getHeight() / 2;
     clip.leftEnd = clip.rightEnd = bf.getHeight() / 2;
 
-    renderSector(activeSector, clip);
+    renderSector(player.pos, activeSector, clip);
   }
 }
 
-void Game::renderSector(const Map::Sector *sec, const Clip &clip, Map::Line *portal) {
+void Game::renderSector(const Map::Vertex &pos, const Map::Sector *sec, const Clip &clip, Map::Line *portal) {
 //  auto frc = std::thread(&Game::renderCeiling, this, sec, clip);
 //  auto frf = std::thread(&Game::renderFloor, this, sec, clip);
 //
 //  frc.join();
 //  frf.join();
 
-  renderCeiling(sec, clip);
-  renderFloor(sec, clip);
+  static int depth = 0;
+  ++depth;
+  if (depth > 10)  {
+    --depth;
+    return;
+  }
 
-  renderWalls(sec, clip, portal);
+  renderCeiling(pos, sec, clip);
+  renderFloor(pos, sec, clip);
+
+  renderWalls(pos, sec, clip, portal);
+
+  --depth;
 }
 
 
@@ -121,7 +130,7 @@ Map::Vertex Game::intersec(const Map::Vertex &v1, const Map::Vertex &v2,
   }
 }
 
-void Game::renderFloor(const Map::Sector *sec, const Game::Clip &clip) {
+void Game::renderFloor(const Map::Vertex &pos, const Map::Sector *sec, const Game::Clip &clip) {
   auto rayDirL = player.dir - player.plane;
   auto rayDirR = player.dir + player.plane;
 
@@ -132,7 +141,7 @@ void Game::renderFloor(const Map::Sector *sec, const Game::Clip &clip) {
     double rowDistance = (double) posZ / p;
 
     auto floorStep = (rowDistance / bf.getWidth()) * (rayDirR - rayDirL);
-    auto floorP = player.pos + rowDistance * rayDirL + floorStep * clip.left;
+    auto floorP = pos + rowDistance * rayDirL + floorStep * clip.left;
 
     auto &tex = sec->floor;
 
@@ -157,18 +166,18 @@ void Game::renderFloor(const Map::Sector *sec, const Game::Clip &clip) {
     }
   }
 }
-void Game::renderCeiling(const Map::Sector *sec, const Game::Clip &clip) {
+void Game::renderCeiling(const Map::Vertex &pos, const Map::Sector *sec, const Game::Clip &clip) {
   auto rayDirL = player.dir - player.plane;
   auto rayDirR = player.dir + player.plane;
 
-  auto posZCeil = sec->ceilingheight - sec->floorheight - player.getHeight() - activeSector->floorheight;
+  auto posZCeil = sec->ceilingheight - player.getHeight() - activeSector->floorheight;
 
   for (int y = 0; y < bf.getHeight() / 2; ++y) {
     double p = ((double) bf.getHeight() / 2 - y) / bf.getWidth();
     double rowDistance = (double) posZCeil / p;
 
     auto floorStep = (rowDistance / bf.getWidth()) * (rayDirR - rayDirL);
-    auto floorP = player.pos + rowDistance * rayDirL + floorStep * clip.left;
+    auto floorP = pos + rowDistance * rayDirL + floorStep * clip.left;
 
     auto &tex = sec->ceiling;
 
@@ -194,26 +203,26 @@ void Game::renderCeiling(const Map::Sector *sec, const Game::Clip &clip) {
   }
 }
 
-void Game::renderWalls(const Map::Sector *sec, const Game::Clip &clip, Map::Line *portal) {
+void Game::renderWalls(const Map::Vertex &pos, const Map::Sector *sec, const Game::Clip &clip, Map::Line *portal) {
   for (auto &a : sec->lines) {
     if (a == portal) continue;
 
     //v1 projection on view plane
-    auto p1 = intersec(player.pos + player.dir,
-                       player.pos + player.dir + player.plane, player.pos, a->v1);
+    auto p1 = intersec(pos + player.dir,
+                       pos + player.dir + player.plane, pos, a->v1);
 
     //v2 projection on view plane
-    auto p2 = intersec(player.pos + player.dir,
-                       player.pos + player.dir + player.plane, player.pos, a->v2);
+    auto p2 = intersec(pos + player.dir,
+                       pos + player.dir + player.plane, pos, a->v2);
 
 
     //calculating wall start and end on plane
-    auto v1pl = (p1 - (player.pos + player.dir)) * player.plane / player.plane.length();
-    auto v2pl = (p2 - (player.pos + player.dir)) * player.plane / player.plane.length();
+    auto v1pl = (p1 - (pos + player.dir)) * player.plane / player.plane.length();
+    auto v2pl = (p2 - (pos + player.dir)) * player.plane / player.plane.length();
 
     //calculating distances to the wall's start and end
-    auto v1DistProj = (a->v1 - player.pos) * player.dir / player.dir.length();
-    auto v2DistProj = (a->v2 - player.pos) * player.dir / player.dir.length();
+    auto v1DistProj = (a->v1 - pos) * player.dir / player.dir.length();
+    auto v2DistProj = (a->v2 - pos) * player.dir / player.dir.length();
 
     auto v1 = a->v1;
     auto v2 = a->v2;
@@ -221,14 +230,14 @@ void Game::renderWalls(const Map::Sector *sec, const Game::Clip &clip, Map::Line
     //if wall start and end are out of screen, casts two view rays
     if (v1pl < -1 || v1DistProj <= 0) {
       v1pl = -1;
-      v1 = intersec(player.pos, player.pos + player.dir - player.plane, a->v1, a->v2);
-      v1DistProj = (v1 - player.pos) * player.dir / player.dir.length();
+      v1 = intersec(pos, pos + player.dir - player.plane, a->v1, a->v2);
+      v1DistProj = (v1 - pos) * player.dir / player.dir.length();
     }
 
     if (v2pl > 1 || v2DistProj <= 0) {
       v2pl = 1;
-      v2 = intersec(player.pos, player.pos + player.dir + player.plane, a->v1, a->v2);
-      v2DistProj = (v2 - player.pos) * player.dir / player.dir.length();
+      v2 = intersec(pos, pos + player.dir + player.plane, a->v1, a->v2);
+      v2DistProj = (v2 - pos) * player.dir / player.dir.length();
     }
 
     if (v1pl > 1 || v2pl < -1) continue;
@@ -237,7 +246,7 @@ void Game::renderWalls(const Map::Sector *sec, const Game::Clip &clip, Map::Line
     if (v1DistProj < 0 || v2DistProj < 0)
       continue;
 
-    if (side(a->v1, a->v2, player.pos)) continue;
+    if (side(a->v1, a->v2, pos)) continue;
 
     int16_t leftCol = bf.getWidth() * ((v1pl + 1) / 2.0);
     int16_t rightCol = bf.getWidth() * ((v2pl + 1) / 2.0);
@@ -246,8 +255,7 @@ void Game::renderWalls(const Map::Sector *sec, const Game::Clip &clip, Map::Line
     int16_t fRightCol = fit<int>(rightCol, clip.left, clip.right);
 
 
-    auto upper = a->sector->ceilingheight - a->sector->floorheight
-                  - player.getHeight() - activeSector->floorheight;
+    auto upper = a->sector->ceilingheight - player.getHeight() - activeSector->floorheight;
     auto bottom = player.getHeight() - a->sector->floorheight
             + activeSector->floorheight;
 
@@ -259,8 +267,7 @@ void Game::renderWalls(const Map::Sector *sec, const Game::Clip &clip, Map::Line
 
     if (a->portal) {
       //todo check
-      auto dCeiling = bf.getWidth() * (sec->ceilingheight - a->portal->sector->ceilingheight +
-                                       a->portal->sector->floorheight - sec->floorheight);
+      auto dCeiling = bf.getWidth() * (sec->ceilingheight - a->portal->sector->ceilingheight - sec->floorheight);
       auto dFloor = bf.getWidth() * (a->portal->sector->floorheight - sec->floorheight);
 
       if (dCeiling < 0) dCeiling = 0;
@@ -274,7 +281,7 @@ void Game::renderWalls(const Map::Sector *sec, const Game::Clip &clip, Map::Line
               rightEnd - dFloor / v2DistProj
       };
 
-      renderSector(a->portal->sector, cl, a->portal);
+      renderSector(pos + (a->portal->v2 - a->v1), a->portal->sector, cl, a->portal);
       //auto portalThr = std::async(&Game::renderSector, this, a->portal->sector, cl, a->portal);
 
       Clip clUpper{
@@ -282,8 +289,7 @@ void Game::renderWalls(const Map::Sector *sec, const Game::Clip &clip, Map::Line
               leftStart, -cl.leftStart, //todo why -
               rightStart, -cl.rightStart,
       };
-      renderPlain(sec, a, v1DistProj, v2DistProj,
-                  a->portal->side->upper, clUpper, clip);
+      renderPlain(pos, sec, a, a->portal->side->upper, clUpper, clip);
       //auto upperThr = std::async(&Game::renderPlain, this, sec, a, a->portal->side->upper, clUpper);
 
       Clip clLower{
@@ -291,8 +297,7 @@ void Game::renderWalls(const Map::Sector *sec, const Game::Clip &clip, Map::Line
               -cl.leftEnd, leftEnd,
               -cl.rightEnd, rightEnd,
       };
-      renderPlain(sec, a, v1DistProj, v2DistProj,
-                  a->portal->side->lower, clLower, clip);
+      renderPlain(pos, sec, a, a->portal->side->lower, clLower, clip);
     }
 
 
@@ -302,15 +307,14 @@ void Game::renderWalls(const Map::Sector *sec, const Game::Clip &clip, Map::Line
               fLeftCol, fRightCol, leftCol, rightCol,//todo test
               leftStart, leftEnd, rightStart, rightEnd,
       };
-      renderPlain(sec, a, v1DistProj, v2DistProj,
-                  a->side->middle, cl, clip); //todo fix clips names
+      renderPlain(pos, sec, a, a->side->middle, cl, clip); //todo fix clips names
     }
   }
 }
 
-  void Game::renderPlain(const Map::Sector *sec, const Map::Line *a, double v1Dist, double v2Dist,
+  void Game::renderPlain(const Map::Vertex &pos, const Map::Sector *sec, const Map::Line *a,
                          const sf::Image &texture, const Game::Clip &clip, const Game::Clip &fclip) {
-    auto sp = player.pos + player.dir - player.plane;
+    auto sp = pos + player.dir - player.plane;
 
     for (int i = clip.fLeft; i < clip.fRight; ++i) {
       auto k = (double) (i - clip.left) / (clip.right - clip.left);
@@ -326,14 +330,12 @@ void Game::renderWalls(const Map::Sector *sec, const Game::Clip &clip, Map::Line
       auto fstart = fit<double>(fit<double>(start, sClip, fClip), 0, bf.getHeight());
       auto ffinish = fit<double>(fit<double>(finish, sClip, fClip), 0, bf.getHeight());
 
-
-
       auto icp = sp + player.plane * (2.0 * i / bf.getWidth());
-      auto its = intersec(player.pos, icp, a->v1, a->v2);
-      auto tx = int((its - a->v1).length() * texture.getSize().x
+      auto its = intersec(pos, icp, a->v1, a->v2);
+      auto tx = int((its - a->v1).length() * 0.5 * texture.getSize().y
                     / (sec->ceilingheight - sec->floorheight)) % texture.getSize().x; //todo fix aspect ratio and upper/lower
 
-      auto d = deepFunc((its-player.pos).length());
+      auto d = deepFunc((its-pos).length());
 
       for (int j = fstart; j < ffinish; ++j) {
         auto ty = int(texture.getSize().y * (j - start) / (finish - start)) % texture.getSize().y;
@@ -347,7 +349,18 @@ void Game::renderWalls(const Map::Sector *sec, const Game::Clip &clip, Map::Line
 Map::Line *Game::collidedLine(const Map::Vertex &pos) {
   for (auto &a: activeSector->lines) {
     auto d = dist(a->v1, a->v2, pos);
-    if ((d <= 20 && !a->portal) || (d <= 4 && a->portal)) { //todo think on better plane bug solution
+
+    double aa = a->v2.y - a->v1.y;
+    double b = a->v1.x - a->v2.x;
+    double c = - aa * a->v1.x - b * a->v1.y;
+
+    double x = (b*(b * pos.x - aa * pos.y) - aa*c) / (aa*aa + b*b);
+    double y = (aa*(-b * pos.x + aa * pos.y) - b*c) / (aa*aa + b*b);
+
+    auto p1 = (std::min(a->v1.x, a->v2.x) <= x) && (std::max(a->v1.x, a->v2.x) >= x);
+    auto p2 = (std::min(a->v1.y, a->v2.y) <= y) && (std::max(a->v1.y, a->v2.y) >= y);
+
+    if ((p1 && p2) && ((d <= 20 && !a->portal) || (d <= 4 && a->portal))) { //todo think on better plane bug solution
       return a;
     }
   }
@@ -380,8 +393,10 @@ void Game::move(const Map::Vertex &mv) {
     //todo think on better plane bug solution
     auto vcl = cl->v2 - cl->v1;
     auto per = Map::Vertex(-vcl.y, vcl.x) / (vcl.length()/8.0);
-    player.move(per + mv);
+
     activeSector = cl->portal->sector;
+    player.move(cl->portal->v2 - cl->v1);
+    player.move(per + mv);
   }
   else {
     auto vcl = cl->v2 - cl->v1;
@@ -392,6 +407,5 @@ void Game::move(const Map::Vertex &mv) {
       player.move(mproj);
     }
   }
-
 }
 

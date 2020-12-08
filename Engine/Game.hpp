@@ -37,14 +37,14 @@ public:
 
 
   void gameLoop();
-  void renderFloor(const Map::Sector *sec, const Clip &clip);
-  void renderCeiling(const Map::Sector *sec, const Clip &clip);
+  void renderFloor(const Map::Vertex &pos, const Map::Sector *sec, const Clip &clip);
+  void renderCeiling(const Map::Vertex &pos, const Map::Sector *sec, const Clip &clip);
 
 private:
   void move(const Map::Vertex &mv);
-  void renderSector(const Map::Sector *sec, const Clip &clip, Map::Line *portal = nullptr);
-  void renderWalls(const Map::Sector *sec, const Clip &clip, Map::Line *portal);
-  void renderPlain(const Map::Sector *sec, const Map::Line *a, double v1Dist, double v2Dist,
+  void renderSector(const Map::Vertex &pos, const Map::Sector *sec, const Clip &clip, Map::Line *portal = nullptr);
+  void renderWalls(const Map::Vertex &pos, const Map::Sector *sec, const Clip &clip, Map::Line *portal);
+  void renderPlain(const Map::Vertex &pos, const Map::Sector *sec, const Map::Line *a,
                    const sf::Image &tex, const Game::Clip &clip, const Game::Clip &fclip);
 
   static Map::Vertex intersec(const Map::Vertex &v1, const Map::Vertex &v2,

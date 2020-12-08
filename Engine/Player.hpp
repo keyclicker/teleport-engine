@@ -26,12 +26,16 @@ public:
     plane.y = oldPlane.x * std::sin(angle) + plane.y * std::cos(angle);
   }
 
+  void setPos(const Map::Vertex &d) {
+    pos = pos + d;
+  }
+
   void move(double dx, double dy) {
     pos.x += dx;
     pos.y += dy;
   }
 
-  void move(Map::Vertex d) {
+  void move(const Map::Vertex &d) {
     move(d.x, d.y);
   }
 
