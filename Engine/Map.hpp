@@ -65,7 +65,6 @@ struct Map::Side {
 };
 
 
-
 struct Map::Sector {
   short	lightlevel = 60;
   double floorheight = -64;
@@ -77,8 +76,8 @@ struct Map::Sector {
   std::vector<Line*> lines;
 
   Sector() = default;
-  explicit Sector(Map &map) {
-    map.sectors.push_back(this);
+  explicit Sector(Map *map) {
+    map->sectors.push_back(this);
   }
 
   ~Sector() {

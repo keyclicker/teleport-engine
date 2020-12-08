@@ -5,7 +5,7 @@
 
 int main() {
 
-  Map map;
+  auto map = new Map();
 
   auto portalSide = std::make_shared<Map::Side >();
 
@@ -62,6 +62,5 @@ int main() {
   Game game(640, 480, "Teleport!");
 
   game.setMap(map);
-
   game.gameLoop();
 }

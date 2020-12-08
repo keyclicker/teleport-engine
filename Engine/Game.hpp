@@ -6,7 +6,7 @@
 
 class Game {
 private:
-  Map map;
+  Map *map;
   Player player;
   Buffer bf;
 
@@ -19,9 +19,13 @@ public:
   Game(uint16_t width, uint16_t height, char *str):
     bf(Buffer(width, height, str)) {}
 
-  void setMap(const Map &m) { //todo move
+  void setMap(Map *m) { //todo move
     map = m;
-    activeSector = map.sectors.front();
+    activeSector = map->sectors.front();
+  }
+
+  ~Game() {
+    delete map;
   }
 
   struct Clip {
