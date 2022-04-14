@@ -1,1 +1,0 @@
-/usr/bin/c++  -pthread -g CMakeFiles/teleport_engine.dir/Game/main.cpp.o CMakeFiles/teleport_engine.dir/Engine/Game.cpp.o -o teleport_engine  /usr/lib/libOpenGL.so /usr/lib/libGLX.so /usr/lib/libGLU.so /usr/lib/libsfml-graphics.so.2.5.1 /usr/lib/libsfml-window.so.2.5.1 /usr/lib/libsfml-system.so.2.5.1 /usr/lib/libGLX.so /usr/lib/libOpenGL.so 

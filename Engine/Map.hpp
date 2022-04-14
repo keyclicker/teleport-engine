@@ -70,8 +70,8 @@ struct Map::Sector {
   double floorheight = -64;
   double ceilingheight = 80;
 
-  sf::Image floor; //Zaglushka
-  sf::Image ceiling; //Zaglushka
+  sf::Image floor;
+  sf::Image ceiling;
 
   std::vector<Line*> lines;
 

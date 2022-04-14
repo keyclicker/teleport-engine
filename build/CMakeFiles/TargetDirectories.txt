@@ -1,3 +1,0 @@
-/home/keyclicker/Programming/teleport-engine/build/CMakeFiles/teleport_engine.dir
-/home/keyclicker/Programming/teleport-engine/build/CMakeFiles/edit_cache.dir
-/home/keyclicker/Programming/teleport-engine/build/CMakeFiles/rebuild_cache.dir

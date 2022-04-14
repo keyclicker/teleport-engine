@@ -6,7 +6,7 @@
 void Game::gameLoop() {
   sf::Clock cl;
 
-  while (bf.isOpen()) {
+  while (bf.display()) {
     auto ep = cl.restart().asSeconds();
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) ||
@@ -84,7 +84,8 @@ void Game::gameLoop() {
   }
 }
 
-void Game::renderSector(const Map::Vertex &pos, const Map::Sector *sec, const Clip &clip, Map::Line *portal) {
+void Game::renderSector(const Map::Vertex &pos, const Map::Sector *sec, 
+                        const Clip &clip, Map::Line *portal) {
 //  auto frc = std::thread(&Game::renderCeiling, this, sec, clip);
 //  auto frf = std::thread(&Game::renderFloor, this, sec, clip);
 //
@@ -130,7 +131,8 @@ Map::Vertex Game::intersec(const Map::Vertex &v1, const Map::Vertex &v2,
   }
 }
 
-void Game::renderFloor(const Map::Vertex &pos, const Map::Sector *sec, const Game::Clip &clip) {
+void Game::renderFloor(const Map::Vertex &pos, const Map::Sector *sec, 
+                       const Game::Clip &clip) {
   auto rayDirL = player.dir - player.plane;
   auto rayDirR = player.dir + player.plane;
 
@@ -166,7 +168,9 @@ void Game::renderFloor(const Map::Vertex &pos, const Map::Sector *sec, const Gam
     }
   }
 }
-void Game::renderCeiling(const Map::Vertex &pos, const Map::Sector *sec, const Game::Clip &clip) {
+
+void Game::renderCeiling(const Map::Vertex &pos, const Map::Sector *sec, 
+                         const Game::Clip &clip) {
   auto rayDirL = player.dir - player.plane;
   auto rayDirR = player.dir + player.plane;
 
@@ -203,7 +207,8 @@ void Game::renderCeiling(const Map::Vertex &pos, const Map::Sector *sec, const G
   }
 }
 
-void Game::renderWalls(const Map::Vertex &pos, const Map::Sector *sec, const Game::Clip &clip, Map::Line *portal) {
+void Game::renderWalls(const Map::Vertex &pos, const Map::Sector *sec, 
+                       const Game::Clip &clip, Map::Line *portal) {
   for (auto &a : sec->lines) {
     if (a == portal) continue;
 
@@ -312,8 +317,9 @@ void Game::renderWalls(const Map::Vertex &pos, const Map::Sector *sec, const Gam
   }
 }
 
-  void Game::renderPlain(const Map::Vertex &pos, const Map::Sector *sec, const Map::Line *a,
-                         const sf::Image &texture, const Game::Clip &clip, const Game::Clip &fclip) {
+  void Game::renderPlain(const Map::Vertex &pos, const Map::Sector *sec, 
+                         const Map::Line *a, const sf::Image &texture, 
+                         const Game::Clip &clip, const Game::Clip &fclip) {
     auto sp = pos + player.dir - player.plane;
 
     for (int i = clip.fLeft; i < clip.fRight; ++i) {
@@ -367,20 +373,22 @@ Map::Line *Game::collidedLine(const Map::Vertex &pos) {
   return nullptr;
 }
 
-bool Game::side(const Map::Vertex &v1, const Map::Vertex &v2, const Map::Vertex &v3) {
-  double a = v2.y - v1.y;
-  double b = v1.x - v2.x;
-  double c = - a * v1.x - b * v1.y;
+bool Game::side(const Map::Vertex &lv1, const Map::Vertex &lv2, 
+                const Map::Vertex &v) {
+  double a = lv2.y - lv1.y;
+  double b = lv1.x - lv2.x;
+  double c = - a * lv1.x - b * lv1.y;
 
-  return a * v3.x + b * v3.y + c < 0;
+  return a * v.x + b * v.y + c < 0;
 }
 
-double Game::dist(const Map::Vertex &v1, const Map::Vertex &v2, const Map::Vertex &v3) {
-  double a = v2.y - v1.y;
-  double b = v1.x - v2.x;
-  double c = - a * v1.x - b * v1.y;
+double Game::dist(const Map::Vertex &lv1, const Map::Vertex &lv2, 
+                  const Map::Vertex &v) {
+  double a = lv2.y - lv1.y;
+  double b = lv1.x - lv2.x;
+  double c = - a * lv1.x - b * lv1.y;
 
-  return (a * v3.x + b * v3.y + c) / std::hypot(a, b);
+  return (a * v.x + b * v.y + c) / std::hypot(a, b);
 }
 
 //todo move projection on colliding line
