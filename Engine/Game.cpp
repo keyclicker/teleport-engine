@@ -100,86 +100,60 @@ void Game::renderSector(const Vertex &pos, const Map::Sector *sec,
     return;
   }
 
-  renderCeiling(pos, sec, clip);
-  renderFloor(pos, sec, clip);
+  // floor
+  renderHorizontalPlane(pos, sec, clip, true);
+  // ceiling
+  renderHorizontalPlane(pos, sec, clip, false);
 
   renderWalls(pos, sec, clip, portal);
 
   --depth;
 }
 
-void Game::renderFloor(const Vertex &pos, const Map::Sector *sec, 
-                       const Game::Clip &clip) {
+void Game::renderHorizontalPlane(const Vertex &pos, const Map::Sector *sec, 
+                                 const Clip &clip, bool floor) {
   auto rayDirL = player.dir - player.plane;
   auto rayDirR = player.dir + player.plane;
 
-  auto posZ = player.getHeight() - sec->floorheight + activeSector->floorheight;
+  // position of the floor/ceiling relative to the player
+  auto posZ = floor 
+  ? player.getHeight() - sec->floorheight + activeSector->floorheight
+  : sec->ceilingheight - player.getHeight() - activeSector->floorheight;
 
-  for (int y = bf.getHeight() / 2; y < bf.getHeight(); ++y) {
-    double p = (double)(y - bf.getHeight() / 2.0) / bf.getWidth();
-    double rowDistance = (double) posZ / p;
+  auto yStart = floor ? bf.getHeight() / 2 : 0;
+  auto yEnd = floor ? bf.getHeight() : bf.getHeight() / 2;
+
+  for (int y = yStart; y < yEnd; ++y) { 
+    // distance from the center of the view
+    auto p = floor 
+    ? (y - bf.getHeight() / 2.0) / bf.getWidth()
+    : (bf.getHeight() / 2.0 - y) / bf.getWidth();
+
+    auto rowDistance = posZ / p;
 
     auto floorStep = (rowDistance / bf.getWidth()) * (rayDirR - rayDirL);
     auto floorP = pos + rowDistance * rayDirL + floorStep * clip.left;
 
-    auto &tex = sec->floor;
+    auto &tex = floor ? sec->floor : sec->ceiling;
 
     auto d = deepFunc(rowDistance);
 
     for (int x = clip.left; x < clip.right; ++x) {
       auto k = (double) (x - clip.left) / (clip.right - clip.left);
+
+      double start = bf.getHeight() / 2.0 - grad(clip.leftStart, clip.rightStart, k);
       double finish = bf.getHeight() / 2.0 + grad(clip.leftEnd, clip.rightEnd, k);
 
-      if (y > finish)  {
-        floorP = floorP + floorStep;
-        continue;
+      if (y > start && y < finish)  {
+        uint16_t ty = int(floorP.y * tex.getSize().y / 100.0) % tex.getSize().y;
+        uint16_t tx = int(floorP.x * tex.getSize().x / 100.0) % tex.getSize().x;
+
+        auto c = tex.getPixel(tx, ty);
+        c.a = 255 * d;
+        bf.setPixel(x, y, c);
       }
 
-      uint16_t ty = int(floorP.y * tex.getSize().y / 100) % tex.getSize().y;
-      uint16_t tx = int(floorP.x * tex.getSize().x / 100) % tex.getSize().x;
-
-      auto c = tex.getPixel(tx, ty);
-      c.a = 255 * d;
-      bf.setPixel(x, y, c);
-      floorP = floorP + floorStep; // todo +=
-    }
-  }
-}
-
-void Game::renderCeiling(const Vertex &pos, const Map::Sector *sec, 
-                         const Game::Clip &clip) {
-  auto rayDirL = player.dir - player.plane;
-  auto rayDirR = player.dir + player.plane;
-
-  auto posZCeil = sec->ceilingheight - player.getHeight() - activeSector->floorheight;
-
-  for (int y = 0; y < bf.getHeight() / 2; ++y) {
-    double p = ((double) bf.getHeight() / 2 - y) / bf.getWidth();
-    double rowDistance = (double) posZCeil / p;
-
-    auto floorStep = (rowDistance / bf.getWidth()) * (rayDirR - rayDirL);
-    auto floorP = pos + rowDistance * rayDirL + floorStep * clip.left;
-
-    auto &tex = sec->ceiling;
-
-    auto d = deepFunc(rowDistance);
-
-    for (int x = clip.left; x < clip.right; ++x) {
-      auto k = (double) (x - clip.left) / (clip.right - clip.left);
-      double start = bf.getHeight() / 2.0 - grad(clip.leftStart, clip.rightStart, k);
-
-      if (y < start)  {
-        floorP = floorP + floorStep;
-        continue;
-      }
-
-      uint16_t ty = int(floorP.y * tex.getSize().y / 100.0) % tex.getSize().y;
-      uint16_t tx = int(floorP.x * tex.getSize().x / 100.0) % tex.getSize().x;
-
-      auto c = tex.getPixel(tx, ty);
-      c.a = 255 * d;
-      bf.setPixel(x, y, c);
-      floorP = floorP + floorStep; // todo +=
+      floorP += floorStep;
     }
   }
 }
@@ -189,27 +163,27 @@ void Game::renderWalls(const Vertex &pos, const Map::Sector *sec,
   for (auto &a : sec->lines) {
     if (a == portal) continue;
 
-    //v1 projection on view plane
+    // v1 projection on view plane
     auto p1 = intersec(pos + player.dir,
                        pos + player.dir + player.plane, pos, a->v1);
 
-    //v2 projection on view plane
+    // v2 projection on view plane
     auto p2 = intersec(pos + player.dir,
                        pos + player.dir + player.plane, pos, a->v2);
 
 
-    //calculating wall start and end on plane
+    // calculating wall start and end on plane
     auto v1pl = (p1 - (pos + player.dir)) * player.plane / player.plane.length();
     auto v2pl = (p2 - (pos + player.dir)) * player.plane / player.plane.length();
 
-    //calculating distances to the wall's start and end
+    // calculating distances to the wall's start and end
     auto v1DistProj = (a->v1 - pos) * player.dir / player.dir.length();
     auto v2DistProj = (a->v2 - pos) * player.dir / player.dir.length();
 
     auto v1 = a->v1;
     auto v2 = a->v2;
 
-    //if wall start and end are out of screen, casts two view rays
+    // if wall start and end are out of screen, casts two view rays
     if (v1pl < -1 || v1DistProj <= 0) {
       v1pl = -1;
       v1 = intersec(pos, pos + player.dir - player.plane, a->v1, a->v2);
@@ -224,7 +198,7 @@ void Game::renderWalls(const Vertex &pos, const Map::Sector *sec,
 
     if (v1pl > 1 || v2pl < -1) continue;
 
-    //skips line behind view
+    // skips line behind view
     if (v1DistProj < 0 || v2DistProj < 0)
       continue;
 

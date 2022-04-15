@@ -66,6 +66,17 @@ public:
   void renderCeiling(const Vertex &pos, const Map::Sector *sec, 
                      const Clip &clip);
 
+  /**
+   * @brief Renders floor or ceiling of the sector
+   * 
+   * @param pos View position
+   * @param sec Sector to render
+   * @param clip Clip info
+   * @param floor true - render floor, false - render ceiling
+   */
+  void renderHorizontalPlane(const Vertex &pos, const Map::Sector *sec, 
+                             const Clip &clip, bool floor);
+
 private:
   /**
    * @brief Move player considering walls collision
