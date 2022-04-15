@@ -1,7 +1,8 @@
-#include "Game.hpp"
-
 #include <iostream> //todo for debug
 #include <future>
+
+#include "Game.hpp"
+#include "Math.hpp"
 
 void Game::gameLoop() {
   sf::Clock cl;
@@ -84,7 +85,7 @@ void Game::gameLoop() {
   }
 }
 
-void Game::renderSector(const Map::Vertex &pos, const Map::Sector *sec, 
+void Game::renderSector(const Vertex &pos, const Map::Sector *sec, 
                         const Clip &clip, Map::Line *portal) {
 //  auto frc = std::thread(&Game::renderCeiling, this, sec, clip);
 //  auto frf = std::thread(&Game::renderFloor, this, sec, clip);
@@ -107,31 +108,7 @@ void Game::renderSector(const Map::Vertex &pos, const Map::Sector *sec,
   --depth;
 }
 
-
-Map::Vertex Game::intersec(const Map::Vertex &v1, const Map::Vertex &v2,
-                           const Map::Vertex &v3, const Map::Vertex &v4) {
-  double a1 = v2.y - v1.y;
-  double b1 = v1.x - v2.x;
-  double c1 = a1*(v1.x) + b1*(v1.y);
-
-  double a2 = v4.y - v3.y;
-  double b2 = v3.x - v4.x;
-  double c2 = a2*(v3.x) + b2*(v3.y);
-
-  double determinant = a1*b2 - a2*b1;
-
-  if (determinant == 0) {
-    return Map::Vertex(std::numeric_limits<double>::max(),
-                  std::numeric_limits<double>::max());
-  }
-  else {
-    double x = (b2*c1 - b1*c2)/determinant;
-    double y = (a1*c2 - a2*c1)/determinant;
-    return Map::Vertex(x, y);
-  }
-}
-
-void Game::renderFloor(const Map::Vertex &pos, const Map::Sector *sec, 
+void Game::renderFloor(const Vertex &pos, const Map::Sector *sec, 
                        const Game::Clip &clip) {
   auto rayDirL = player.dir - player.plane;
   auto rayDirR = player.dir + player.plane;
@@ -169,7 +146,7 @@ void Game::renderFloor(const Map::Vertex &pos, const Map::Sector *sec,
   }
 }
 
-void Game::renderCeiling(const Map::Vertex &pos, const Map::Sector *sec, 
+void Game::renderCeiling(const Vertex &pos, const Map::Sector *sec, 
                          const Game::Clip &clip) {
   auto rayDirL = player.dir - player.plane;
   auto rayDirR = player.dir + player.plane;
@@ -207,7 +184,7 @@ void Game::renderCeiling(const Map::Vertex &pos, const Map::Sector *sec,
   }
 }
 
-void Game::renderWalls(const Map::Vertex &pos, const Map::Sector *sec, 
+void Game::renderWalls(const Vertex &pos, const Map::Sector *sec, 
                        const Game::Clip &clip, Map::Line *portal) {
   for (auto &a : sec->lines) {
     if (a == portal) continue;
@@ -317,7 +294,7 @@ void Game::renderWalls(const Map::Vertex &pos, const Map::Sector *sec,
   }
 }
 
-  void Game::renderPlain(const Map::Vertex &pos, const Map::Sector *sec, 
+  void Game::renderPlain(const Vertex &pos, const Map::Sector *sec, 
                          const Map::Line *a, const sf::Image &texture, 
                          const Game::Clip &clip, const Game::Clip &fclip) {
     auto sp = pos + player.dir - player.plane;
@@ -352,7 +329,7 @@ void Game::renderWalls(const Map::Vertex &pos, const Map::Sector *sec,
     }
   }
 
-Map::Line *Game::collidedLine(const Map::Vertex &pos) {
+Map::Line *Game::collidedLine(const Vertex &pos) {
   for (auto &a: activeSector->lines) {
     auto d = dist(a->v1, a->v2, pos);
 
@@ -373,26 +350,8 @@ Map::Line *Game::collidedLine(const Map::Vertex &pos) {
   return nullptr;
 }
 
-bool Game::side(const Map::Vertex &lv1, const Map::Vertex &lv2, 
-                const Map::Vertex &v) {
-  double a = lv2.y - lv1.y;
-  double b = lv1.x - lv2.x;
-  double c = - a * lv1.x - b * lv1.y;
-
-  return a * v.x + b * v.y + c < 0;
-}
-
-double Game::dist(const Map::Vertex &lv1, const Map::Vertex &lv2, 
-                  const Map::Vertex &v) {
-  double a = lv2.y - lv1.y;
-  double b = lv1.x - lv2.x;
-  double c = - a * lv1.x - b * lv1.y;
-
-  return (a * v.x + b * v.y + c) / std::hypot(a, b);
-}
-
 //todo move projection on colliding line
-void Game::move(const Map::Vertex &mv) {
+void Game::move(const Vertex &mv) {
   auto cl = collidedLine(player.pos + mv);
   if (!cl) {
     player.move(mv);
@@ -400,7 +359,7 @@ void Game::move(const Map::Vertex &mv) {
   else if (cl->portal) {
     //todo think on better plane bug solution
     auto vcl = cl->v2 - cl->v1;
-    auto per = Map::Vertex(-vcl.y, vcl.x) / (vcl.length()/8.0);
+    auto per = Vertex(-vcl.y, vcl.x) / (vcl.length()/8.0);
 
     activeSector = cl->portal->sector;
     player.move(cl->portal->v2 - cl->v1);
@@ -416,4 +375,3 @@ void Game::move(const Map::Vertex &mv) {
     }
   }
 }
-

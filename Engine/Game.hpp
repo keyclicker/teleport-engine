@@ -3,6 +3,7 @@
 #include "Map.hpp"
 #include "Player.hpp"
 #include "Buffer.hpp"
+#include "Math.hpp"
 
 class Game {
 private:
@@ -52,7 +53,7 @@ public:
    * @param sec Sector to render
    * @param clip Clip info
    */
-  void renderFloor(const Map::Vertex &pos, const Map::Sector *sec, 
+  void renderFloor(const Vertex &pos, const Map::Sector *sec, 
                   const Clip &clip);
 
   /**
@@ -62,7 +63,7 @@ public:
    * @param sec Sector to render
    * @param clip Clip info
    */
-  void renderCeiling(const Map::Vertex &pos, const Map::Sector *sec, 
+  void renderCeiling(const Vertex &pos, const Map::Sector *sec, 
                      const Clip &clip);
 
 private:
@@ -71,7 +72,7 @@ private:
    * 
    * @param mv Movement vector
    */
-  void move(const Map::Vertex &mv);
+  void move(const Vertex &mv);
 
   /**
    * @brief Renders sector
@@ -81,7 +82,7 @@ private:
    * @param clip Clip info
    * @param portal Portal
    */
-  void renderSector(const Map::Vertex &pos, const Map::Sector *sec, 
+  void renderSector(const Vertex &pos, const Map::Sector *sec, 
                     const Clip &clip, Map::Line *portal = nullptr);
 
   /**
@@ -92,7 +93,7 @@ private:
    * @param clip Clip info
    * @param portal ...
    */
-  void renderWalls(const Map::Vertex &pos, const Map::Sector *sec, 
+  void renderWalls(const Vertex &pos, const Map::Sector *sec, 
                   const Clip &clip, Map::Line *portal);
 
   /**
@@ -105,21 +106,9 @@ private:
    * @param clip Clip info
    * @param fclip ...
    */
-  void renderPlain(const Map::Vertex &pos, const Map::Sector *sec, 
+  void renderPlain(const Vertex &pos, const Map::Sector *sec, 
                    const Map::Line *a, const sf::Image &tex, 
                    const Game::Clip &clip, const Game::Clip &fclip);
-
-  /**
-   * @brief Returns intersection of the lines
-   * 
-   * @param v1 First vertex of the first line
-   * @param v2 Second vertex of the first line
-   * @param v3 First vertex of the second line
-   * @param v4 Second vertex of the second line
-   * @return Map::Vertex Intersection
-   */
-  static Map::Vertex intersec(const Map::Vertex &v1, const Map::Vertex &v2,
-                              const Map::Vertex &v3, const Map::Vertex &v4);
 
   /**
    * @brief Returns line collided with the player
@@ -127,69 +116,17 @@ private:
    * @param pos Player position
    * @return Map::Line* 
    */
-  Map::Line *collidedLine(const Map::Vertex &pos);
+  Map::Line *collidedLine(const Vertex &pos);
 
   /**
-   * @brief Returns side of the line where vertex is located
+   * @brief Calculates the factor of darkening for pixel 
    * 
-   * @param lv1 First vertex of the line
-   * @param lv2 Second vertex of the line
-   * @param v Vertex
-   * @return true Vertex is on the positive side of the line
-   * @return false Vertex is on the negative side of the line
+   * @param dist distance to pixel
+   * @return double factor of darkening
    */
-  static bool side(const Map::Vertex &lv1, const Map::Vertex &lv2, 
-                   const Map::Vertex &v);
-
-  /**
-   * @brief Distant from the line to the vertex
-   * 
-   * @param lv1 First vertex of the line
-   * @param lv2 Second vertex of the line
-   * @param v Vertex
-   * @return double 
-   */
-  static double dist(const Map::Vertex &lv1, const Map::Vertex &lv2, 
-                     const Map::Vertex &v);
-
-
-  static double deepFunc(double dist) {
-    auto d = 100.0 / dist;
+  double deepFunc(double dist) {
+    auto d = 512.0 / dist;
     d = fit(0.05 + d * 0.95, 0.0, 1.0);
-    return 1;
-  }
-
-  /**
-   * @brief Returns value in range [a, b] depending on k,
-   * k = 0.0 returns a, k = 1.0 returns b
-   * 
-   * @tparam T Range bounds type
-   * @param a Range start
-   * @param b Range end
-   * @param k [0, 1]
-   * @return double Value in range [a, b]
-   */
-  template<typename T>
-  static double grad(T a, T b, double k) {
-    return ((1 - k) * a + k * b);
-  }
-
-
-  /**
-   * @brief Clips value to range
-   * 
-   * @tparam T Value type
-   * @param value Value
-   * @param a Range start
-   * @param b Range end
-   * @return T Result of cliping
-   */
-  template<typename T>
-  static T fit(T value, T a, T b) {
-    if (value < a)
-      return a;
-    if (value > b)
-      return b;
-    return value;
+    return d;
   }
 };

@@ -1,7 +1,10 @@
 #pragma once
 
-#include "Map.hpp"
 #include <cmath>
+
+#include "Map.hpp"
+#include "Math.hpp"
+
 
 /**
  * @brief Player representation
@@ -17,9 +20,9 @@ private:
 
 public:
   // todo make getters and setters
-  Map::Vertex pos = {0, 0};
-  Map::Vertex dir = {1, 0};
-  Map::Vertex plane = {0, -1};
+  Vertex pos = {0, 0};
+  Vertex dir = {1, 0};
+  Vertex plane = {0, -1};
 
 
   /**
@@ -42,7 +45,7 @@ public:
    * 
    * @param d Position
    */
-  void setPos(const Map::Vertex &d) {
+  void setPos(const Vertex &d) {
     pos = pos + d;
   }
 
@@ -62,7 +65,7 @@ public:
    * 
    * @param d Movement vector
    */
-  void move(const Map::Vertex &d) {
+  void move(const Vertex &d) {
     move(d.x, d.y);
   }
 

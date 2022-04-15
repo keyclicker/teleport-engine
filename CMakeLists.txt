@@ -8,7 +8,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 find_package(OpenGL REQUIRED)
 find_package(SFML COMPONENTS system window graphics network audio)
 
-add_executable(teleport_engine Game/main.cpp Engine/Game.cpp)
+add_executable(teleport_engine Game/main.cpp Engine/Game.cpp Engine/Math.cpp)
 
 #target_link_libraries(teleport_engine glfw)
 target_link_libraries(teleport_engine OpenGL::GL)
