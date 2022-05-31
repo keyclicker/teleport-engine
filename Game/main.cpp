@@ -210,7 +210,7 @@ int main() {
 
 
 
-  Game game(640, 480, "Teleport!");
+  Game game(1280, 720, "Teleport!");
 
   game.setMap(map);
   game.gameLoop();

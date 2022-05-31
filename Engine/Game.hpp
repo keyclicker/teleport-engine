@@ -47,26 +47,6 @@ public:
   void gameLoop();
 
   /**
-   * @brief Renders floor of the sector
-   * 
-   * @param pos View position
-   * @param sec Sector to render
-   * @param clip Clip info
-   */
-  void renderFloor(const Vertex &pos, const Map::Sector *sec, 
-                  const Clip &clip);
-
-  /**
-   * @brief Renders ceiling of the sector
-   * 
-   * @param pos View position
-   * @param sec Sector to render
-   * @param clip Clip info
-   */
-  void renderCeiling(const Vertex &pos, const Map::Sector *sec, 
-                     const Clip &clip);
-
-  /**
    * @brief Renders floor or ceiling of the sector
    * 
    * @param pos View position

@@ -101,9 +101,9 @@ void Game::renderSector(const Vertex &pos, const Map::Sector *sec,
   }
 
   // floor
-  renderHorizontalPlane(pos, sec, clip, true);
+//  renderHorizontalPlane(pos, sec, clip, true);
   // ceiling
-  renderHorizontalPlane(pos, sec, clip, false);
+//  renderHorizontalPlane(pos, sec, clip, false);
 
   renderWalls(pos, sec, clip, portal);
 
@@ -124,11 +124,12 @@ void Game::renderHorizontalPlane(const Vertex &pos, const Map::Sector *sec,
   auto yEnd = floor ? bf.getHeight() : bf.getHeight() / 2;
 
   for (int y = yStart; y < yEnd; ++y) { 
-    // distance from the center of the view
+    // distance from the center of the view on the screen plane
     auto p = floor 
     ? (y - bf.getHeight() / 2.0) / bf.getWidth()
     : (bf.getHeight() / 2.0 - y) / bf.getWidth();
 
+    // distance from the view to the row
     auto rowDistance = posZ / p;
 
     auto floorStep = (rowDistance / bf.getWidth()) * (rayDirR - rayDirL);
