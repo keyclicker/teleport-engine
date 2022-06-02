@@ -101,38 +101,77 @@ void Game::renderSector(const Vertex &pos, const Map::Sector *sec,
 void Game::renderWalls(const Vertex &pos, const Map::Sector *sec, 
                        const Game::Clip &clip, Map::Line *portal) {
 
-  auto a = new Map::Line((Map::Sector*) sec, {100, 100}, {100, -100}, sec->lines[0]->side);
-//  for (auto &a : sec->lines) {
+  for (auto &a : sec->lines) {
     // transform and rotate the line
     auto v1 = (a->v1 - pos).rotatedToDir(player.dir);
     auto v2 = (a->v2 - pos).rotatedToDir(player.dir);
 
-    if (v1.x > v2.x) {
-      std::swap(v1, v2);
+    if (v1.y > 0 || v2.y > 0) {
+      // handling lines that are partially  behind the player
+      if (v1.y <= 0 || v2.y <= 0) {
+        auto i1 = intersec(v1, v2, {0, 0}, {-1, 1});
+        auto i2 = intersec(v1, v2, {0, 0}, {1, 1});
+
+        Vertex i;
+        if (i1.y > 0 && i2.y > 0) {
+          if (i1.y < i2.y) i = i1; else i = i2; }
+        else if (i1.y > 0) i = i1;
+        else if (i2.y > 0) i = i2;
+        else continue;
+
+        if (v1.y < 0) v1 = i;
+        if (v2.y < 0) v2 = i;
+      }
+
+      // Screen vertical begin and end
+      Segment<> vSeg = {
+          v1.x / v1.y,
+          v2.x / v2.y
+      };
+
+      // ceiling and floor heights relative to the player
+      auto rch = sec->ceilingheight
+          - player.getHeight() - activeSector->floorheight;
+      auto rfh = sec->floorheight
+          -  player.getHeight() - activeSector->floorheight;
+
+      Plain middle = { vSeg,
+        { rch / v1.y, rfh / v1.y } ,
+        { rch / v2.y, rfh / v2.y }};
+
+      if (a->portal) {
+        if (sec->floorheight < a->portal->sector->floorheight) {
+          auto rfhPortal = a->portal->sector->floorheight
+                           - player.getHeight() - activeSector->floorheight;
+          Plain lower = { vSeg,
+            { rfhPortal / v1.y, rfh / v1.y } ,
+            { rfhPortal / v2.y, rfh / v2.y }};
+          renderPlain(lower, clip, sf::Color::Blue);
+        }
+
+        if (sec->ceilingheight > a->portal->sector->ceilingheight) {
+          auto rchPortal = a->portal->sector->ceilingheight
+                           - player.getHeight() - activeSector->floorheight;
+          Plain upper = { vSeg,
+            { rch / v1.y, rchPortal / v1.y } ,
+            { rch / v2.y, rchPortal / v2.y }};
+          renderPlain(upper, clip, sf::Color::Green);
+        }
+
+        renderSector(pos, a->portal->sector, clip.clamped(middle), a);
+      } else {
+        renderPlain(middle, clip, sf::Color::Red);
+      }
     }
-
-    Segment<> vSeg = {
-        v1.x / v1.y,
-        v2.x / v2.y
-    };
-
-    Segment<> lSeg = {
-        -200.0 / v1.y,
-        200.0 / v1.y
-    };
-
-    Segment<> rSeg = {
-        -200.0 / v2.y,
-        200.0 / v2.y
-    };
-
-
-
-    renderPlain({vSeg, lSeg, rSeg}, clip);
-//  }
+  }
 }
 
-void Game::renderPlain(Plain plain, Clip clip) {
+void Game::renderPlain(Plain plain, Clip clip, sf::Color color) {
+  if (plain.hSeg.begin > plain.hSeg.end) {
+    std::swap(plain.hSeg.begin, plain.hSeg.end);
+    std::swap(plain.lSeg, plain.rSeg);
+  }
+
   // Horizontal segment of visible part of the wall
   auto hSeg = hToScreen(clip.hClamp(plain.hSeg));
 
@@ -147,7 +186,7 @@ void Game::renderPlain(Plain plain, Clip clip) {
     }));
 
     for (uint16_t y = vSeg.begin; y < vSeg.end; ++y) {
-      bf.setPixel(x, y, sf::Color::Red);
+      bf.setPixel(x, y, color);
     }
   }
 }
@@ -182,7 +221,7 @@ void Game::move(const Vertex &mv) {
   else if (cl->portal) {
     //todo think on better plane bug solution
     auto vcl = cl->v2 - cl->v1;
-    auto per = Vertex(-vcl.y, vcl.x) / (vcl.length()/8.0);
+    auto per = Vertex(-vcl.y, vcl.x) / (vcl.length()/20.0);
 
     activeSector = cl->portal->sector;
     player.move(cl->portal->v2 - cl->v1);

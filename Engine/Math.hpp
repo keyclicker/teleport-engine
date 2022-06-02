@@ -65,6 +65,10 @@ struct Vertex {
     return *this;
   }
 
+  double cross(const Vertex &rhs) const {
+    return x * rhs.y - y * rhs.x;
+  }
+
   void rotate(double angle) {
     double c = std::cos(angle);
     double s = std::sin(angle);
@@ -82,7 +86,7 @@ struct Vertex {
     y = ox * s + y * c;
   }
 
-  Vertex rotatedToDir(Vertex dir) {
+  Vertex rotatedToDir(Vertex dir) const {
     double c = dir.y;
     double s = dir.x;
     return {x * c - y * s, x * s + y * c};

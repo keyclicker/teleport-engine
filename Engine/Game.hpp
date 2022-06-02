@@ -32,38 +32,46 @@ private:
     explicit Clip(Game *game): game(game), hClip({-1, 1}) {};
     Clip(Game *game, Segment<> hClip): game(game), hClip(hClip) {};
 
-    void clampSelf(Plain portal) {
-      hClip.begin = std::max(hClip.begin, portal.lSeg.begin);
-      hClip.end = std::min(hClip.end, portal.rSeg.end);
+    Clip clamped(Plain portal) const {
+      auto phClamped = hClamp(portal.hSeg);
+      Segment<> hClamped = {
+          std::max(hClip.begin, phClamped.begin),
+          std::min(hClip.end, phClamped.end)
+      };
 
+      auto hSeg = game->hToScreen(hClamped);
       auto &vClip = game->vClip;
-      for (uint16_t x = hClip.begin; x < hClip.end; ++x) {
-        auto k = (double) (x - hClip.begin) / (hClip.end - hClip.begin);
 
-        Segment<> secCol = {
+      for (uint16_t x = hSeg.begin; x < hSeg.end; ++x) {
+        auto k = (double) (game->xToView(x) - portal.hSeg.begin)
+            / (portal.hSeg.end - portal.hSeg.begin);
+
+        Segment<> secCol = vClamp(x,{
             interpolate(portal.lSeg.begin, portal.rSeg.begin, k),
             interpolate(portal.lSeg.end, portal.rSeg.end, k)
-        };
+        });
 
         vClip[x] = {
-            std::max(vClip[x].begin, secCol.begin),
-            std::min(vClip[x].end, secCol.end)
+            std::min(vClip[x].begin, secCol.begin),
+            std::max(vClip[x].end, secCol.end)
         };
       }
+
+      return Clip(game, hClamped);
     }
 
     Segment<> hClamp(Segment<> seg) const {
       return {
-          std::max(seg.begin, hClip.begin),
-          std::min(seg.end, hClip.end)
+          std::clamp(seg.begin, hClip.begin, hClip.end),
+          std::clamp(seg.end, hClip.begin, hClip.end)
       };
     }
 
     Segment<> vClamp(uint16_t x, Segment<> seg) const {
       auto &vClip = game->vClip;
       return {
-          std::max(seg.begin, vClip[x].begin),
-          std::min(seg.end, vClip[x].end)
+          std::clamp(seg.begin, vClip[x].begin, vClip[x].end),
+          std::clamp(seg.end, vClip[x].begin, vClip[x].end)
       };
     }
   };
@@ -120,7 +128,7 @@ private:
   void renderWalls(const Vertex &pos, const Map::Sector *sec, 
                   const Clip &clip, Map::Line *portal);
 
-  void renderPlain(Plain plain, Clip clip);
+  void renderPlain(Plain plain, Clip clip, sf::Color color);
 
   /**
    * @brief Returns line collided with the player
@@ -147,7 +155,7 @@ private:
   }
 
   uint16_t yToScreen(double y) {
-    return (uint16_t) bf.getHeight() * ((y + 1.0) / 2.0);
+    return (uint16_t) bf.getHeight() * ((1.0 - y) / 2.0);
   }
 
   Segment<uint16_t> hToScreen(Segment<double> hSeg) {
