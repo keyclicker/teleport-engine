@@ -65,15 +65,40 @@ struct Vertex {
     return *this;
   }
 
-  Vertex &rotate(double angle) {
+  void rotate(double angle) {
     double c = std::cos(angle);
     double s = std::sin(angle);
-    double x = this->x * c - this->y * s;
-    double y = this->x * s + this->y * c;
-    this->x = x;
-    this->y = y;
-    return *this;
+    double ox = x;
+    x = ox * c - y * s;
+    y = ox * s + y * c;
   }
+
+  // dir length is 1
+  void rotateToDir(Vertex dir) {
+    double c = dir.x;
+    double s = 1 / dir.y;
+    double ox = x;
+    x = ox * c - y * s;
+    y = ox * s + y * c;
+  }
+
+  Vertex rotatedToDir(Vertex dir) {
+    double c = dir.y;
+    double s = dir.x;
+    return {x * c - y * s, x * s + y * c};
+  }
+};
+
+// Vertical line
+template <typename T = double>
+struct Segment {
+  T begin, end;
+};
+
+// Screen plane struct
+struct Plain {
+  Segment<> hSeg;
+  Segment<> lSeg, rSeg;
 };
   
   
@@ -123,7 +148,7 @@ double dist(const Vertex &lv1, const Vertex &lv2,
  * @return double Value in range [a, b]
  */
 template<typename T>
-double grad(T a, T b, double k) {
+T interpolate(T a, T b, double k) {
     return ((1 - k) * a + k * b);
 }
 
