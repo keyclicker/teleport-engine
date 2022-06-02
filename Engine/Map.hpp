@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <memory>
 
-#include "Math.hpp"
+#include "Utils/Vector.hpp"
 
 struct Map {
   struct Line;
@@ -41,14 +41,14 @@ struct Map {
   };
 
   struct Line {
-    Vertex v1, v2;
+    Vector v1, v2;
     std::shared_ptr<Side> side;
     Line *portal;
     Sector *sector;
 
-    Line(): sector(nullptr), portal(nullptr), v1(Vertex()), v2(Vertex()), side(nullptr)  {}
+    Line(): sector(nullptr), portal(nullptr), v1(Vector()), v2(Vector()), side(nullptr)  {}
 
-    Line(Sector *sector, Vertex v1, Vertex v2, std::shared_ptr<Side> side):
+    Line(Sector *sector, Vector v1, Vector v2, std::shared_ptr<Side> side):
         sector(sector), v1(v1), v2(v2), side(std::move(side)), portal(nullptr) {
       sector->lines.push_back(this);
     }

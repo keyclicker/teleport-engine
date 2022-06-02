@@ -3,7 +3,7 @@
 #include <cmath>
 
 #include "Map.hpp"
-#include "Math.hpp"
+#include "Utils/Math.hpp"
 
 
 /**
@@ -20,9 +20,9 @@ private:
 
 public:
   // todo make getters and setters
-  Vertex pos = {0, 0};
-  Vertex dir = {1, 0};
-  Vertex plane = {0, -1};
+  Vector pos = {0, 0};
+  Vector dir = {1, 0};
+  Vector plane = {0, -1};
 
 
   /**
@@ -40,7 +40,7 @@ public:
    * 
    * @param d Position
    */
-  void setPos(const Vertex &d) {
+  void setPos(const Vector &d) {
     pos = pos + d;
   }
 
@@ -60,7 +60,7 @@ public:
    * 
    * @param d Movement vector
    */
-  void move(const Vertex &d) {
+  void move(const Vector &d) {
     move(d.x, d.y);
   }
 

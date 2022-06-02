@@ -10,7 +10,7 @@ find_package(SFML COMPONENTS system window graphics network audio)
 
 include_directories(${SFML_INCLUDE_DIR})
 
-add_executable(teleport_engine Game/main.cpp Engine/Game.cpp Engine/Math.cpp)
+add_executable(teleport_engine Game/main.cpp Engine/Game.cpp Engine/Utils/Math.cpp Engine/Renderer.cpp Engine/Utils/Clip.cpp)
 
 #target_link_libraries(teleport_engine glfw)
 target_link_libraries(teleport_engine OpenGL::GL)

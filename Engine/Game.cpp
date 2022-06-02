@@ -1,14 +1,14 @@
 #include <iostream> //todo for debug
-#include <future>
 #include <vector>
 
 #include "Game.hpp"
-#include "Math.hpp"
+#include "Utils/Math.hpp"
+#include "Renderer.hpp"
 
 void Game::gameLoop() {
   sf::Clock cl;
 
-  while (bf.display()) {
+  while (renderer.bf.display()) {
     auto ep = cl.restart().asSeconds();
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) ||
@@ -76,122 +76,12 @@ void Game::gameLoop() {
       std::cout << 1.0/ep << std::endl;
     }
 
-    vClip = std::vector<Segment<>>{bf.getWidth(),
-                     Segment<>{-1, 1}};
-
-    auto clip = Clip(this);
-
-    renderSector(player.pos, activeSector, clip);
+    renderer.renderFrame();
   }
 }
 
-void Game::renderSector(const Vertex &pos, const Map::Sector *sec, 
-                        const Clip &clip, Map::Line *portal) {
 
-  static int depth = 0;
-  ++depth;
-  if (depth < 10)  {
-    renderWalls(pos, sec, clip, portal);
-  }
-  --depth;
-}
-
-
-
-void Game::renderWalls(const Vertex &pos, const Map::Sector *sec, 
-                       const Game::Clip &clip, Map::Line *portal) {
-
-  for (auto &a : sec->lines) {
-    // transform and rotate the line
-    auto v1 = (a->v1 - pos).rotatedToDir(player.dir);
-    auto v2 = (a->v2 - pos).rotatedToDir(player.dir);
-
-    if (v1.y > 0 || v2.y > 0) {
-      // handling lines that are partially  behind the player
-      if (v1.y <= 0 || v2.y <= 0) {
-        auto i1 = intersec(v1, v2, {0, 0}, {-1, 1});
-        auto i2 = intersec(v1, v2, {0, 0}, {1, 1});
-
-        Vertex i;
-        if (i1.y > 0 && i2.y > 0) {
-          if (i1.y < i2.y) i = i1; else i = i2; }
-        else if (i1.y > 0) i = i1;
-        else if (i2.y > 0) i = i2;
-        else continue;
-
-        if (v1.y < 0) v1 = i;
-        if (v2.y < 0) v2 = i;
-      }
-
-      // Screen vertical begin and end
-      Segment<> vSeg = {
-          v1.x / v1.y,
-          v2.x / v2.y
-      };
-
-      // ceiling and floor heights relative to the player
-      auto rch = sec->ceilingheight
-          - player.getHeight() - activeSector->floorheight;
-      auto rfh = sec->floorheight
-          -  player.getHeight() - activeSector->floorheight;
-
-      Plain middle = { vSeg,
-        { rch / v1.y, rfh / v1.y } ,
-        { rch / v2.y, rfh / v2.y }};
-
-      if (a->portal) {
-        if (sec->floorheight < a->portal->sector->floorheight) {
-          auto rfhPortal = a->portal->sector->floorheight
-                           - player.getHeight() - activeSector->floorheight;
-          Plain lower = { vSeg,
-            { rfhPortal / v1.y, rfh / v1.y } ,
-            { rfhPortal / v2.y, rfh / v2.y }};
-          renderPlain(lower, clip, sf::Color::Blue);
-        }
-
-        if (sec->ceilingheight > a->portal->sector->ceilingheight) {
-          auto rchPortal = a->portal->sector->ceilingheight
-                           - player.getHeight() - activeSector->floorheight;
-          Plain upper = { vSeg,
-            { rch / v1.y, rchPortal / v1.y } ,
-            { rch / v2.y, rchPortal / v2.y }};
-          renderPlain(upper, clip, sf::Color::Green);
-        }
-
-        renderSector(pos, a->portal->sector, clip.clamped(middle), a);
-      } else {
-        renderPlain(middle, clip, sf::Color::Red);
-      }
-    }
-  }
-}
-
-void Game::renderPlain(Plain plain, Clip clip, sf::Color color) {
-  if (plain.hSeg.begin > plain.hSeg.end) {
-    std::swap(plain.hSeg.begin, plain.hSeg.end);
-    std::swap(plain.lSeg, plain.rSeg);
-  }
-
-  // Horizontal segment of visible part of the wall
-  auto hSeg = hToScreen(clip.hClamp(plain.hSeg));
-
-  for (uint16_t x = hSeg.begin; x < hSeg.end; ++x) {
-    // Calculating k for interpolation
-    auto k = (double) (xToView(x) - plain.hSeg.begin)
-        / (plain.hSeg.end - plain.hSeg.begin);
-
-    Segment vSeg = vToScreen(clip.vClamp(x, {
-      interpolate(plain.lSeg.begin, plain.rSeg.begin, k),
-      interpolate(plain.lSeg.end, plain.rSeg.end, k)
-    }));
-
-    for (uint16_t y = vSeg.begin; y < vSeg.end; ++y) {
-      bf.setPixel(x, y, color);
-    }
-  }
-}
-
-Map::Line *Game::collidedLine(const Vertex &pos) {
+Map::Line *Game::collidedLine(const Vector &pos) {
   for (auto &a: activeSector->lines) {
     auto d = dist(a->v1, a->v2, pos);
 
@@ -213,7 +103,7 @@ Map::Line *Game::collidedLine(const Vertex &pos) {
 }
 
 //todo move projection on colliding line
-void Game::move(const Vertex &mv) {
+void Game::move(const Vector &mv) {
   auto cl = collidedLine(player.pos + mv);
   if (!cl) {
     player.move(mv);
@@ -221,7 +111,7 @@ void Game::move(const Vertex &mv) {
   else if (cl->portal) {
     //todo think on better plane bug solution
     auto vcl = cl->v2 - cl->v1;
-    auto per = Vertex(-vcl.y, vcl.x) / (vcl.length()/20.0);
+    auto per = Vector(-vcl.y, vcl.x) / (vcl.length() / 20.0);
 
     activeSector = cl->portal->sector;
     player.move(cl->portal->v2 - cl->v1);
