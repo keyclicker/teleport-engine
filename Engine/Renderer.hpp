@@ -3,6 +3,7 @@
 #include "Utils/Utils.hpp"
 #include "Utils/Vector.hpp"
 #include "Utils/Clip.hpp"
+#include "Utils/Worker.hpp"
 #include "Buffer.hpp"
 #include "Map.hpp"
 
@@ -52,9 +53,8 @@ public:
   /**
    * @brief Renders wall
    */
-  void renderPlain(Plain plain, Clip clip,
-                   double height, Vector v1, Vector v2,
-                   const sf::Image &texture);
+  void renderPlain(Plain plain, Clip clip, const Map::Line *line,
+                   double height, double upperHeight, double lowerHeight);
 
 
   uint16_t xToScreen(double x);

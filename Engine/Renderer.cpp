@@ -7,6 +7,7 @@ void Renderer::renderFrame() {
 
   auto clip = Clip(this, {-1, 1});
   renderSector(game->player.pos, game->activeSector, clip);
+
 }
 
 void Renderer::renderSector(const Vector &pos, const Map::Sector *sec,
@@ -65,58 +66,57 @@ void Renderer::renderWalls(const Vector &pos, const Map::Sector *sec,
                        { rch / v2.y, rfh / v2.y }};
 
       if (a->portal) {
-        if (sec->floorheight < a->portal->sector->floorheight) {
-          auto rfhPortal = a->portal->sector->floorheight
-                           - player.getHeight() - activeFloorH;
-          Plain lower = { vSeg,
-                          { rfhPortal / v1.y, rfh / v1.y } ,
-                          { rfhPortal / v2.y, rfh / v2.y }};
-          renderPlain(lower, clip, 50, v1, v2, a->side->lower);
-        }
-
-        if (sec->ceilingheight > a->portal->sector->ceilingheight) {
-          auto rchPortal = a->portal->sector->ceilingheight
-                           - player.getHeight() - activeFloorH;
-          Plain upper = { vSeg,
-                          { rch / v1.y, rchPortal / v1.y } ,
-                          { rch / v2.y, rchPortal / v2.y }};
-          renderPlain(upper, clip, 50, v1, v2, a->side->upper);
-        }
-
         renderSector(pos, a->portal->sector, clip.clamped(middle), a);
-      } else {
-        renderPlain(middle, clip, 100, v1, v2, a->side->middle);
       }
+
+      renderPlain(middle, clip, a,
+        sec->ceilingheight - sec->floorheight,
+        a->portal ? sec->ceilingheight - a->portal->sector->ceilingheight : 0,
+        a->portal ? a->portal->sector->floorheight - sec->floorheight : 0);
     }
   }
 }
 
-void Renderer::renderPlain(Plain plain, Clip clip, double height,
-                       Vector v1, Vector v2, const sf::Image &texture) {
+void Renderer::renderPlain(Plain plain, Clip clip, const Map::Line *line,
+                     double height, double upperHeight, double lowerHeight) {
   if (plain.hSeg.begin > plain.hSeg.end) {
     std::swap(plain.hSeg.begin, plain.hSeg.end);
     std::swap(plain.lSeg, plain.rSeg);
   }
 
   // Horizontal segment of visible part of the wall
-  auto hSeg = hToScreen(clip.hClamp(plain.hSeg));
+  auto hSeg = hToScreen(clip.hSegClamp(plain.hSeg));
 
   for (uint16_t x = hSeg.begin; x < hSeg.end; ++x) {
     // Calculating k for interpolation
     auto k = (double) (xToView(x) - plain.hSeg.begin)
              / (plain.hSeg.end - plain.hSeg.begin);
 
-    Segment vSeg = vToScreen(clip.vClamp(x, {
-        interpolate(plain.lSeg.begin, plain.rSeg.begin, k),
-        interpolate(plain.lSeg.end, plain.rSeg.end, k)
-    }));
+    // View screen segment of current column
+    Segment<> iSeg = {
+      interpolate(plain.lSeg.begin, plain.rSeg.begin, k),
+      interpolate(plain.lSeg.end, plain.rSeg.end, k)
+    };
 
-    uint16_t tx = (uint16_t) (k * texture.getSize().x);
+    // Clamped screen segment of the column
+    Segment vSeg = vToScreen(clip.vSegClamp(x, iSeg));
 
-    for (uint16_t y = vSeg.begin; y < vSeg.end; ++y) {
-      uint16_t ty = y;
-      auto c = texture.getPixel(tx, ty);
-      bf.setPixel(x, y, c);
+    if (line->portal) {
+      uint16_t upperEnd = yToScreen(clip.vClamp(x,
+        iSeg.begin + (iSeg.end - iSeg.begin) * (upperHeight / height)));
+      uint16_t lowerBegin = yToScreen(clip.vClamp(x,
+        iSeg.end - (iSeg.end - iSeg.begin) * (lowerHeight / height)));
+
+      for (uint16_t y = vSeg.begin; y < upperEnd; ++y)
+        bf.setPixel(x, y, sf::Color::Blue);
+
+      for (uint16_t y = lowerBegin; y < vSeg.end; ++y)
+        bf.setPixel(x, y, sf::Color::Green);
+
+    } else {
+      for (uint16_t y = vSeg.begin; y < vSeg.end; ++y) {
+        bf.setPixel(x, y, sf::Color::Red);
+      }
     }
   }
 }
