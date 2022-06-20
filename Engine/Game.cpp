@@ -1,5 +1,6 @@
 #include <iostream> //todo for debug
 #include <vector>
+#include <cmath>
 
 #include "Game.hpp"
 #include "Utils/Math.hpp"
@@ -7,9 +8,17 @@
 
 void Game::gameLoop() {
   sf::Clock cl;
+  double speed = 1;
 
   while (renderer.bf.display()) {
-    auto ep = cl.restart().asSeconds();
+    auto ep = cl.restart().asSeconds() * speed;
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::LBracket)) {
+      speed /= pow(1.25, ep);
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::RBracket)) {
+      speed *= pow(1.25, ep);
+    }
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) ||
        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q) ) {
@@ -19,26 +28,6 @@ void Game::gameLoop() {
        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E)) {
       player.rotate(-2 * ep);
     }
-
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad8)) {
-      move(player.dir * (ep * 30));
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad5)) {
-      move(-player.dir * (ep * 30));
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad4)) {
-      move(-player.plane * (ep * 30));
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad6)) {
-      move(player.plane * (ep * 30));
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad7)) {
-      player.rotate(0.2 * ep);
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad9)) {
-      player.rotate(-0.2 * ep);
-    }
-
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
       move(player.dir * (ep * 300));
@@ -59,7 +48,6 @@ void Game::gameLoop() {
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X)) {
       player.setHeight(player.getHeight() - ep * 20);
     }
-
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W) ||
         sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S) ||

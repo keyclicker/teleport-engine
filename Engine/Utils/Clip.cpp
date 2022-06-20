@@ -9,11 +9,11 @@ Clip Clip::clamped(Plain portal) const {
       std::min(hClip.end, phClamped.end)
   };
 
-  auto hSeg = rend->hToScreen(hClamped);
+  auto hSeg = rend->hScreenToBuff(hClamped);
   auto &vClip = rend->vClip;
 
   for (uint16_t x = hSeg.begin; x < hSeg.end; ++x) {
-    auto k = (double) (rend->xToView(x) - portal.hSeg.begin)
+    auto k = (double) (rend->xBuffToScreen(x) - portal.hSeg.begin)
              / (portal.hSeg.end - portal.hSeg.begin);
 
     Segment<> secCol = vSegClamp(x, {
@@ -22,12 +22,12 @@ Clip Clip::clamped(Plain portal) const {
     });
 
     vClip[x] = {
-        std::min(vClip[x].begin, secCol.begin),
-        std::max(vClip[x].end, secCol.end)
+        std::clamp(vClip[x].begin, secCol.end, secCol.begin),
+        std::clamp(vClip[x].end, secCol.end, secCol.begin)
     };
   }
 
-  return Clip(rend, hClamped);
+  return {rend, hClamped};
 }
 
 Segment<> Clip::hSegClamp(Segment<> seg) const {
@@ -40,8 +40,8 @@ Segment<> Clip::hSegClamp(Segment<> seg) const {
 Segment<> Clip::vSegClamp(uint16_t x, Segment<> seg) const {
   auto &vClip = rend->vClip;
   return {
-      std::clamp(seg.begin, vClip[x].begin, vClip[x].end),
-      std::clamp(seg.end, vClip[x].begin, vClip[x].end)
+      std::clamp(seg.begin, vClip[x].end, vClip[x].begin),
+      std::clamp(seg.end, vClip[x].end, vClip[x].begin)
   };
 }
 
@@ -50,5 +50,6 @@ double Clip::hClamp(double x) const {
 }
 
 double Clip::vClamp(uint16_t x, double y) const {
-  return std::clamp(y, rend->vClip[x].begin, rend->vClip[x].end);
+  auto &vClip = rend->vClip;
+  return std::clamp(y,vClip[x].end, vClip[x].begin);
 }

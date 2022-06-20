@@ -6,11 +6,14 @@
 #include "Utils/Worker.hpp"
 #include "Buffer.hpp"
 #include "Map.hpp"
+#include "Utils/Worker.hpp"
 
 class Game;
 
 class Renderer {
 private:
+  static constexpr int MAX_DEPTH = 10;
+
   friend class Clip;
   friend class Game;
 
@@ -53,19 +56,19 @@ public:
   /**
    * @brief Renders wall
    */
-  void renderPlain(Plain plain, Clip clip, const Map::Line *line,
-                   double height, double upperHeight, double lowerHeight);
+  Clip renderPlain(Plain plain, Clip clip, const Map::Line *line,
+                   Segment<Vector> tLine, Segment<Vector> ctLine);
 
 
-  uint16_t xToScreen(double x);
+  uint16_t xScreenToBuff(double x);
 
-  uint16_t yToScreen(double y);
+  uint16_t yScreenToBuff(double y);
 
-  Segment<uint16_t> hToScreen(Segment<double> hSeg);
+  Segment<uint16_t> hScreenToBuff(Segment<double> hSeg);
 
-  Segment<uint16_t> vToScreen(Segment<double> vSeg);
+  Segment<uint16_t> vScreenToBuff(Segment<double> vSeg);
 
-  double xToView(uint16_t x);
+  double xBuffToScreen(uint16_t x);
 
-  double yToView(uint16_t y);
+  double yBuffToScreen(uint16_t y);
 };
