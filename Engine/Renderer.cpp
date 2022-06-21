@@ -1,21 +1,26 @@
 #include "Renderer.hpp"
 #include "Game.hpp"
 
+#include <iostream> // for debugging
+
 void Renderer::renderFrame() {
-  vClip = std::vector<Segment<>>{bf.getWidth(),
-                                 Segment<>{1, -1}};
+  visitedSectors.clear();
+  vClip = std::vector<Segment<>>{bf.getWidth(), Segment<>{1, -1}};
 
   auto clip = Clip(this, {-1, 1});
   renderSector(game->player.pos, game->activeSector, clip);
-
+//  __debugRenderVClip();
 }
 
-void Renderer::renderSector(const Vector &pos, const Map::Sector *sec,
+void Renderer::renderSector(const Vector &pos, Map::Sector *sec,
                         const Clip &clip, Map::Line *portal) {
   // Variable for controlling depth of the rendering
   static int depth = 0;
+
   ++depth;
-  if (depth < MAX_DEPTH)  {
+  if (!visitedSectors.contains(sec) && depth < MAX_DEPTH)  {
+    visitedSectors.insert(sec);
+    renderVisplane(pos, sec, clip);
     renderWalls(pos, sec, clip, portal);
   }
   --depth;
@@ -54,8 +59,8 @@ void Renderer::renderWalls(const Vector &pos, const Map::Sector *sec,
         // Finding the right intersection
         Vector i{};
         if (i1.y > 0 && i2.y > 0) {
-          if (i1.y < i2.y) i = i1; else i = i2; }
-        else if (i1.y > 0) i = i1;
+          if (i1.y < i2.y) i = i1; else i = i2;
+        } else if (i1.y > 0) i = i1;
         else if (i2.y > 0) i = i2;
         else continue;
 
@@ -71,16 +76,15 @@ void Renderer::renderWalls(const Vector &pos, const Map::Sector *sec,
       };
 
       // Wall projection on the screen
-      Plain plain = { vSeg,
-       { rch / ctLine.begin.y, rfh / ctLine.begin.y } ,
-       { rch / ctLine.end.y, rfh / ctLine.end.y }};
+      Plain plain = {vSeg,
+                     {rch / ctLine.begin.y, rfh / ctLine.begin.y},
+                     {rch / ctLine.end.y, rfh / ctLine.end.y}};
 
       auto newClip = renderPlain(plain, clip, a, tLine, ctLine);
-      newClip = clip.clamped(plain);
 
       if (a->portal) {
-        auto np = pos - (a->portal->v2 - a->v1);
-        renderSector(np, a->portal->sector, newClip, a);
+//        auto np = pos - (a->portal->v2 - a->v1);
+        renderSector(pos, a->portal->sector, newClip, a);
       }
     }
   }
@@ -98,10 +102,23 @@ Clip Renderer::renderPlain(Plain plain, Clip clip, const Map::Line *line,
 
   // Calculating the height of the wall in screen coordinates
   double height = line->sector->ceilingheight - line->sector->floorheight;
-  double upperHeight, lowerHeight;
+  double upperHeight, lowerHeight,
+      upperEndL, upperEndR, lowerBeginL, lowerBeginR;
+
   if (line->portal) {
     upperHeight = line->sector->ceilingheight - line->portal->sector->ceilingheight;
     lowerHeight = line->portal->sector->floorheight - line->sector->floorheight;
+
+    // Calculating left and right start and end
+    // points for the lower and upper parts of the wall (great explanation)
+    upperEndL = plain.lSeg.begin +
+        (plain.lSeg.end - plain.lSeg.begin) * (upperHeight / height);
+    upperEndR = plain.rSeg.begin +
+        (plain.rSeg.end - plain.rSeg.begin) * (upperHeight / height);
+    lowerBeginL = plain.lSeg.end -
+        (plain.lSeg.end - plain.lSeg.begin) * (lowerHeight / height);
+    lowerBeginR = plain.rSeg.end -
+        (plain.rSeg.end - plain.rSeg.begin) * (lowerHeight / height);
   }
 
   // Horizontal segment of visible part of the wall
@@ -111,18 +128,6 @@ Clip Renderer::renderPlain(Plain plain, Clip clip, const Map::Line *line,
   auto &middleT = line->side->middle;
   auto &lowerT = line->side->lower;
   auto &upperT = line->side->upper;
-
-
-  // Calculating left and right start and end
-  // points for the lower and upper parts of the wall (great explanation)
-//  auto upperEndL = plain.lSeg.begin +
-//                  (plain.lSeg.end - plain.lSeg.begin) * (upperHeight / height);
-//  auto upperEndR = plain.rSeg.begin +
-//                  (plain.rSeg.end - plain.rSeg.begin) * (upperHeight / height);
-//  auto lowerBeginL = plain.lSeg.end -
-//                  (plain.lSeg.end - plain.lSeg.begin) * (lowerHeight / height);
-//  auto lowerBeginR = plain.rSeg.end -
-//                  (plain.rSeg.end - plain.rSeg.begin) * (lowerHeight / height);
 
   // Iterating over the columns
   for (uint16_t x = hSeg.begin; x < hSeg.end; ++x) {
@@ -156,11 +161,8 @@ Clip Renderer::renderPlain(Plain plain, Clip clip, const Map::Line *line,
     // Rendering upper and lower textures if wall is portal
     if (line->portal) {
       // Calculating start and end points for the lower and upper parts of the wall
-//      auto upperEnd = interpolate(upperEndL, upperEndR, kx);
-//      auto lowerBegin = interpolate(lowerBeginL, lowerBeginR, kx);
-
-      auto upperEnd = vSeg.begin + (vSeg.end - vSeg.begin) * (upperHeight / height);
-      auto lowerBegin = vSeg.end - (vSeg.end - vSeg.begin) * (lowerHeight / height);
+      auto upperEnd = interpolate(upperEndL, upperEndR, kx);
+      auto lowerBegin = interpolate(lowerBeginL, lowerBeginR, kx);
 
       // Transforming the points to the buffer coordinates
       auto upperEndBuff = yScreenToBuff(clip.vClamp(x, upperEnd));
@@ -188,10 +190,72 @@ Clip Renderer::renderPlain(Plain plain, Clip clip, const Map::Line *line,
       }
     }
   }
-  return clip.clamped(plain);
+
+  if (line->portal)
+    return clip.clamped({plain.hSeg,
+   {std::min(upperEndL, plain.lSeg.begin), std::max(lowerBeginL, plain.lSeg.end)},
+   {std::min(upperEndR, plain.rSeg.begin), std::max(lowerBeginR, plain.rSeg.end)}});
+  else
+    return clip;
 }
 
+void Renderer::renderVisplane(const Vector &pos, const Map::Sector *sec,
+                       const Clip &clip) {
+  auto rayDirL = game->player.dir - game->player.plane;
+  auto rayDirR = game->player.dir + game->player.plane;
+  auto vec = (rayDirR - rayDirL);
 
+  // Vertical position of the camera
+  auto h = game->player.getHeight() -
+      sec->floorheight + game->activeSector->floorheight;
+
+  auto &tex = sec->floor;
+
+  // Horizontal clip in buffer coordinates
+  auto hClipBuf = hScreenToBuff(clip.hClip);
+
+  // Preparing necessary data for the loop
+  auto yBegin = bf.getHeight() / 2;
+  auto yEnd = bf.getHeight();
+  auto xBegin = hClipBuf.begin;
+  auto xEnd = hClipBuf.end;
+
+  auto yTexSize = tex.getSize().y;
+  auto xTexSize = tex.getSize().x;
+
+  for (int y = yBegin; y < yEnd; ++y) {
+    // Z coordinate of the row
+    double rowZ = (double) h / -yBuffToScreen(y);
+
+    auto floorStep = (rowZ / bf.getWidth()) * vec;
+    auto floorP = pos + rowZ * rayDirL + floorStep * clip.hClip.begin;
+
+    bool pixelSet = false;
+    for (int x = xBegin; x < xEnd; ++x) {
+      if (y > yScreenToBuff(vClip[x].begin) &&
+          y < yScreenToBuff(vClip[x].end)) {
+        uint16_t ty = int(floorP.y * yTexSize / 100) % yTexSize;
+        uint16_t tx = int(floorP.x * xTexSize / 100) % xTexSize;
+        bf.setPixel(x, y, tex.getPixel(tx, ty));
+        pixelSet = true;
+      }
+      // (0) - Together with (1) cuts the rendering time by half
+      else if (pixelSet) break;
+
+      floorP += floorStep;
+    }
+    // (1) - Together with (0) cuts the rendering time by half
+    if (!pixelSet) break;
+  }
+}
+
+void Renderer::__debugRenderVClip() {
+  for (uint16_t x = 0; x < bf.getWidth(); ++x) {
+    for (uint16_t y = yScreenToBuff(vClip[x].begin); y < yScreenToBuff(vClip[x].end); ++y) {
+      bf.setPixel(x, y, sf::Color(0, 20, 0, 20) + bf.getPixel(x, y));
+    }
+  }
+}
 
 uint16_t Renderer::xScreenToBuff(double x) {
   return (uint16_t) bf.getWidth() * ((x + 1.0) / 2.0);

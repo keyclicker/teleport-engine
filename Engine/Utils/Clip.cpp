@@ -46,7 +46,10 @@ Segment<> Clip::vSegClamp(uint16_t x, Segment<> seg) const {
 }
 
 double Clip::hClamp(double x) const {
-  return std::clamp(x, hClip.begin, hClip.end);
+  if (hClip.begin > hClip.end)
+    return std::clamp(x, hClip.end, hClip.begin);
+  else
+    return std::clamp(x, hClip.begin, hClip.end);
 }
 
 double Clip::vClamp(uint16_t x, double y) const {

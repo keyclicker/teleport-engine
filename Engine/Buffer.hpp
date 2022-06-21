@@ -61,6 +61,9 @@ public:
     image.setPixel(x, y, color);
   }
 
+  sf::Color getPixel(uint16_t x, uint16_t y) {
+    return image.getPixel(x, y);
+  }
   /**
    * @brief Displays changes and returns if window is open
    * 

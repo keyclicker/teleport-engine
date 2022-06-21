@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_set>
+
 #include "Utils/Utils.hpp"
 #include "Utils/Vector.hpp"
 #include "Utils/Clip.hpp"
@@ -23,6 +25,7 @@ private:
   // Vertical clipping of the frame
   // gets to initial state after each frame
   std::vector<Segment<>> vClip;
+  std::unordered_set<Map::Sector*> visitedSectors;
 
 public:
   Renderer(uint16_t width, uint16_t height, char *str, Game *game):
@@ -38,7 +41,7 @@ public:
  * @param clip Clip info
  * @param portal Portal
  */
-  void renderSector(const Vector &pos, const Map::Sector *sec,
+  void renderSector(const Vector &pos, Map::Sector *sec,
                     const Clip &clip, Map::Line *portal = nullptr);
 
   /**
@@ -58,6 +61,11 @@ public:
    */
   Clip renderPlain(Plain plain, Clip clip, const Map::Line *line,
                    Segment<Vector> tLine, Segment<Vector> ctLine);
+
+  void renderVisplane(const Vector &pos, const Map::Sector *sec,
+                         const Clip &clip);
+
+  void __debugRenderVClip();
 
 
   uint16_t xScreenToBuff(double x);
