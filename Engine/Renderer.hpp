@@ -6,10 +6,8 @@
 #include "Utils/Utils.hpp"
 #include "Utils/Vector.hpp"
 #include "Utils/Clip.hpp"
-#include "Utils/Worker.hpp"
 #include "Buffer.hpp"
 #include "Map.hpp"
-#include "Utils/Worker.hpp"
 
 class Game;
 
