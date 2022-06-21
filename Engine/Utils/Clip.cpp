@@ -2,7 +2,7 @@
 #include "Math.hpp"
 #include "../Renderer.hpp"
 
-Clip Clip::clamped(Plain portal) const {
+Clip Clip::clamped(Plane portal) const {
   auto phClamped = hSegClamp(portal.hSeg);
   Segment<> hClamped = {
       std::max(hClip.begin, phClamped.begin),

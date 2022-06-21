@@ -21,7 +21,7 @@ struct Clip {
    *
    * @param portal Portal to clip with
    */
-  [[nodiscard]] Clip clamped(Plain portal) const;
+  [[nodiscard]] Clip clamped(Plane portal) const;
 
   /**
    * @brief Clips horizontal segment
@@ -52,5 +52,4 @@ struct Clip {
    * @return uint16_t Clipped coordinate
    */
   [[nodiscard]] double vClamp(uint16_t x, double y) const;
-
 };

@@ -18,9 +18,10 @@ void Renderer::renderSector(const Vector &pos, Map::Sector *sec,
   static int depth = 0;
 
   ++depth;
-  if (!visitedSectors.contains(sec) && depth < MAX_DEPTH)  {
-    visitedSectors.insert(sec);
-    renderVisplane(pos, sec, clip);
+  if (!visitedSectors.contains({sec, pos.x, pos.y}) && depth < MAX_DEPTH)  {
+    visitedSectors.insert({sec, pos.x, pos.y});
+    renderVisplane(pos, sec, clip, true);
+    renderVisplane(pos, sec, clip, false);
     renderWalls(pos, sec, clip, portal);
   }
   --depth;
@@ -76,26 +77,28 @@ void Renderer::renderWalls(const Vector &pos, const Map::Sector *sec,
       };
 
       // Wall projection on the screen
-      Plain plain = {vSeg,
+      Plane plane = {vSeg,
                      {rch / ctLine.begin.y, rfh / ctLine.begin.y},
                      {rch / ctLine.end.y, rfh / ctLine.end.y}};
 
-      auto newClip = renderPlain(plain, clip, a, tLine, ctLine);
+      if (clip.hSegClamp(plane.hSeg).length() >0) {
+        auto newClip = renderPlane(plane, clip, a, tLine, ctLine);
 
-      if (a->portal) {
-//        auto np = pos - (a->portal->v2 - a->v1);
-        renderSector(pos, a->portal->sector, newClip, a);
+        if (a->portal) {
+          auto np = pos + (a->portal->v2 - a->v1);
+          renderSector(np, a->portal->sector, newClip, a);
+        }
       }
     }
   }
 }
 
-Clip Renderer::renderPlain(Plain plain, Clip clip, const Map::Line *line,
+Clip Renderer::renderPlane(Plane plane, Clip clip, const Map::Line *line,
                            Segment<Vector> tLine, Segment<Vector> ctLine) {
   // Swap begin and end if necessary
-  if (plain.hSeg.begin > plain.hSeg.end) {
-    std::swap(plain.hSeg.begin, plain.hSeg.end);
-    std::swap(plain.lSeg, plain.rSeg);
+  if (plane.hSeg.begin > plane.hSeg.end) {
+    std::swap(plane.hSeg.begin, plane.hSeg.end);
+    std::swap(plane.lSeg, plane.rSeg);
     std::swap(tLine.begin, tLine.end);
     std::swap(ctLine.begin, ctLine.end);
   }
@@ -111,18 +114,18 @@ Clip Renderer::renderPlain(Plain plain, Clip clip, const Map::Line *line,
 
     // Calculating left and right start and end
     // points for the lower and upper parts of the wall (great explanation)
-    upperEndL = plain.lSeg.begin +
-        (plain.lSeg.end - plain.lSeg.begin) * (upperHeight / height);
-    upperEndR = plain.rSeg.begin +
-        (plain.rSeg.end - plain.rSeg.begin) * (upperHeight / height);
-    lowerBeginL = plain.lSeg.end -
-        (plain.lSeg.end - plain.lSeg.begin) * (lowerHeight / height);
-    lowerBeginR = plain.rSeg.end -
-        (plain.rSeg.end - plain.rSeg.begin) * (lowerHeight / height);
+    upperEndL = plane.lSeg.begin +
+        (plane.lSeg.end - plane.lSeg.begin) * (upperHeight / height);
+    upperEndR = plane.rSeg.begin +
+        (plane.rSeg.end - plane.rSeg.begin) * (upperHeight / height);
+    lowerBeginL = plane.lSeg.end -
+        (plane.lSeg.end - plane.lSeg.begin) * (lowerHeight / height);
+    lowerBeginR = plane.rSeg.end -
+        (plane.rSeg.end - plane.rSeg.begin) * (lowerHeight / height);
   }
 
   // Horizontal segment of visible part of the wall
-  auto hSeg = hScreenToBuff(clip.hSegClamp(plain.hSeg));
+  auto hSeg = hScreenToBuff(clip.hSegClamp(plane.hSeg));
 
   // "unpacking" the textures
   auto &middleT = line->side->middle;
@@ -132,13 +135,13 @@ Clip Renderer::renderPlain(Plain plain, Clip clip, const Map::Line *line,
   // Iterating over the columns
   for (uint16_t x = hSeg.begin; x < hSeg.end; ++x) {
     // Calculating k for interpolation
-    auto kx = (double) (xBuffToScreen(x) - plain.hSeg.begin)
-              / (plain.hSeg.end - plain.hSeg.begin);
+    auto kx = (double) (xBuffToScreen(x) - plane.hSeg.begin)
+              / (plane.hSeg.end - plane.hSeg.begin);
 
     // Screen segment of current column
     Segment<> vSeg = {
-      interpolate(plain.lSeg.begin, plain.rSeg.begin, kx),
-      interpolate(plain.lSeg.end, plain.rSeg.end, kx)
+      interpolate(plane.lSeg.begin, plane.rSeg.begin, kx),
+      interpolate(plane.lSeg.end, plane.rSeg.end, kx)
     };
 
     // Column position on the map
@@ -158,6 +161,9 @@ Clip Renderer::renderPlain(Plain plain, Clip clip, const Map::Line *line,
     // Clamped buff segment of the column
     Segment vBuffSeg = vScreenToBuff(clip.vSegClamp(x, vSeg));
 
+    // Color alpha for the column
+    auto ca = zFunction(cy);
+
     // Rendering upper and lower textures if wall is portal
     if (line->portal) {
       // Calculating start and end points for the lower and upper parts of the wall
@@ -171,80 +177,94 @@ Clip Renderer::renderPlain(Plain plain, Clip clip, const Map::Line *line,
       // Rendering the upper wall
       double tyk =  upperT.getSize().y  / (upperEnd - vSeg.begin);
       for (uint16_t y = vBuffSeg.begin; y < upperEndBuff; ++y) {
-        uint16_t ty = tyk * (yBuffToScreen(y) - vSeg.begin);
-        bf.setPixel(x, y, upperT.getPixel(txu, ty));
+        uint16_t ty = uint16_t (tyk *
+            (yBuffToScreen(y) - vSeg.begin)) % upperT.getSize().y;
+        auto c = upperT.getPixel(txu, ty); c.a = ca;
+        bf.setPixel(x, y, c);
       }
 
       // Rendering the lower wall
       tyk =  lowerT.getSize().y  / (vSeg.end - lowerBegin);
       for (uint16_t y = lowerBeginBuff; y < vBuffSeg.end; ++y) {
-        uint16_t ty = tyk * (yBuffToScreen(y) - lowerBegin);
-        bf.setPixel(x, y, lowerT.getPixel(txl, ty));
+        uint16_t ty = uint16_t (tyk *
+            (yBuffToScreen(y) - lowerBegin)) % lowerT.getSize().y;;
+        auto c = lowerT.getPixel(txl, ty); c.a = ca;
+        bf.setPixel(x, y, c);
       }
     } else {
       // Rendering the middle wall
       auto tyk =  middleT.getSize().y  / (vSeg.end - vSeg.begin);
       for (uint16_t y = vBuffSeg.begin; y < vBuffSeg.end; ++y) {
-        uint16_t ty = tyk * (yBuffToScreen(y) - vSeg.begin);
-        bf.setPixel(x, y, middleT.getPixel(txm, ty));
+        uint16_t ty = uint16_t (tyk *
+            (yBuffToScreen(y) - vSeg.begin)) % middleT.getSize().y;;
+        auto c = middleT.getPixel(txm, ty); c.a = ca;
+        bf.setPixel(x, y, c);
       }
     }
   }
 
   if (line->portal)
-    return clip.clamped({plain.hSeg,
-   {std::min(upperEndL, plain.lSeg.begin), std::max(lowerBeginL, plain.lSeg.end)},
-   {std::min(upperEndR, plain.rSeg.begin), std::max(lowerBeginR, plain.rSeg.end)}});
+    return clip.clamped({plane.hSeg,
+   {std::min(upperEndL, plane.lSeg.begin), std::max(lowerBeginL, plane.lSeg.end)},
+   {std::min(upperEndR, plane.rSeg.begin), std::max(lowerBeginR, plane.rSeg.end)}});
   else
     return clip;
 }
 
+// Needs to be rewritten with fill algorithm
 void Renderer::renderVisplane(const Vector &pos, const Map::Sector *sec,
-                       const Clip &clip) {
+                       const Clip &clip, bool isFloor = true) {
   auto rayDirL = game->player.dir - game->player.plane;
   auto rayDirR = game->player.dir + game->player.plane;
   auto vec = (rayDirR - rayDirL);
 
   // Vertical position of the camera
-  auto h = game->player.getHeight() -
+  double h;
+  if (isFloor)
+    h = game->player.getHeight() -
       sec->floorheight + game->activeSector->floorheight;
+  else
+    h = game->player.getHeight() -
+      sec->ceilingheight + game->activeSector->floorheight ;
 
-  auto &tex = sec->floor;
+  auto &tex = isFloor ? sec->floor : sec->ceiling;
 
   // Horizontal clip in buffer coordinates
-  auto hClipBuf = hScreenToBuff(clip.hClip);
+  auto hClipBuff = hScreenToBuff(clip.hClip);
 
   // Preparing necessary data for the loop
   auto yBegin = bf.getHeight() / 2;
-  auto yEnd = bf.getHeight();
-  auto xBegin = hClipBuf.begin;
-  auto xEnd = hClipBuf.end;
+  auto yEnd = isFloor ? bf.getHeight() : 0;
+  auto xBegin = hClipBuff.begin;
+  auto xEnd = hClipBuff.end;
 
   auto yTexSize = tex.getSize().y;
   auto xTexSize = tex.getSize().x;
 
-  for (int y = yBegin; y < yEnd; ++y) {
+  for (int y = yBegin; isFloor == y < yEnd; isFloor ? ++y : --y) {
     // Z coordinate of the row
     double rowZ = (double) h / -yBuffToScreen(y);
 
     auto floorStep = (rowZ / bf.getWidth()) * vec;
-    auto floorP = pos + rowZ * rayDirL + floorStep * clip.hClip.begin;
+    auto floorP = pos + rowZ * rayDirL + floorStep * hClipBuff.begin;
+
+    auto ca = zFunction(rowZ);
 
     bool pixelSet = false;
     for (int x = xBegin; x < xEnd; ++x) {
       if (y > yScreenToBuff(vClip[x].begin) &&
           y < yScreenToBuff(vClip[x].end)) {
-        uint16_t ty = int(floorP.y * yTexSize / 100) % yTexSize;
-        uint16_t tx = int(floorP.x * xTexSize / 100) % xTexSize;
-        bf.setPixel(x, y, tex.getPixel(tx, ty));
+        uint16_t ty = int(floorP.y * yTexSize / 50) % yTexSize;
+        uint16_t tx = int(floorP.x * xTexSize / 50) % xTexSize;
+
+        auto c = tex.getPixel(tx, ty); c.a = ca;
+        bf.setPixel(x, y, c);
         pixelSet = true;
       }
-      // (0) - Together with (1) cuts the rendering time by half
       else if (pixelSet) break;
 
       floorP += floorStep;
     }
-    // (1) - Together with (0) cuts the rendering time by half
     if (!pixelSet) break;
   }
 }

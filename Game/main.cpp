@@ -1,14 +1,13 @@
 #include "../Engine/Game.hpp"
 #include "../Engine/Map.hpp"
 
-
+// This file inits map
+// There is definitely need in map format and map editor
 
 int main() {
-
   auto map = new Map();
 
   auto portalSide = std::make_shared<Map::Side >();
-
 
   portalSide->upper.loadFromFile("../Resources/Textures/brick.png");
   portalSide->lower.loadFromFile("../Resources/Textures/brick.png");
@@ -25,7 +24,6 @@ int main() {
   sec1->floorheight = 0;
   sec1->lightlevel = 60;
 
-
   new Map::Line(sec1, {400, 400}, {400, 0}, side1);
   auto loop1 = new Map::Line(sec1, {400, 0}, {400, -400}, portalSide);
 
@@ -34,7 +32,6 @@ int main() {
   new Map::Line(sec1, {-400, -400}, {-400, 0}, side1);
 
   auto loop0 = new Map::Line(sec1, {-400, 0}, {-400, 400}, portalSide);
-
 
   new Map::Line(sec1, {-400, 400}, {0, 600}, side1);
 
@@ -53,16 +50,13 @@ int main() {
   sec2->floorheight = 20;
   sec2->lightlevel = 60;
 
-
   auto portal2 = new Map::Line(sec2,{400, 400}, {0, 600}, portalSide);
   new Map::Line(sec2, {0, 600}, {400, 1000}, side2);
   new Map::Line(sec2, {400, 1000}, {800, 800}, side2);
   auto portal3 = new Map::Line(sec2, {800, 800}, {400, 400}, portalSide);
 
-
   portal1->portal = portal2;
   portal2->portal = portal1;
-
 
   auto sec3 = new Map::Sector(map);
   sec3->ceiling.loadFromFile("../Resources/Textures/ceiling.gif");
@@ -123,7 +117,6 @@ int main() {
   sp4->portal = sp5;
   sp5->portal = sp4;
 
-
   auto stair4 = new Map::Sector(map);
   stair4->ceiling.loadFromFile("../Resources/Textures/ceiling.gif");
   stair4->floor.loadFromFile("../Resources/Textures/floor.gif");
@@ -139,7 +132,6 @@ int main() {
   sp6->portal = sp7;
   sp7->portal = sp6;
 
-
   auto secret = new Map::Sector(map);
   secret->ceiling.loadFromFile("../Resources/Textures/ceiling.gif");
   secret->floor.loadFromFile("../Resources/Textures/floor.gif");
@@ -153,7 +145,6 @@ int main() {
   auto sideX = std::make_shared<Map::Side >();
   sideX->middle.loadFromFile("../Resources/Textures/sw.png");
 
-
   auto sp9 = new Map::Line(secret, {400, 0}, {800, 0}, portalSide);
   new Map::Line(secret, {800, 0}, {800, -400}, sideX);
   new Map::Line(secret, {800, -400}, {400, -400}, sideHi);
@@ -162,16 +153,12 @@ int main() {
   sp8->portal = sp9;
   sp9->portal = sp8;
 
-
-
-
   auto tunel = new Map::Sector(map);
   tunel->ceiling.loadFromFile("../Resources/Textures/ceiling.gif");
   tunel->floor.loadFromFile("../Resources/Textures/floor.gif");
 
   tunel->ceilingheight = 150;
   tunel->floorheight = 0;
-
 
   auto loop2 = new Map::Line(tunel, {400, -400}, {400, 0}, portalSide);
   new Map::Line(tunel, {400, 0}, {600, 0}, side1);
@@ -192,13 +179,10 @@ int main() {
   tunel1->ceilingheight = 150;
   tunel1->floorheight = 0;
 
-
   auto loop4 = new Map::Line(tunel1, {800, -1000}, {800, -600}, portalSide);
   new Map::Line(tunel1, {800, -600}, {1400, -600}, side1);
   auto loop5 = new Map::Line(tunel1, {1400, -600}, {1400, -1000}, portalSide);
   new Map::Line(tunel1, {1400, -1000}, {800, -1000}, side1);
-
-
 
   loop3->portal = loop4;
   loop4->portal = loop3;
@@ -206,11 +190,7 @@ int main() {
   loop5->portal = loop0;
   loop0->portal = loop5;
 
-
-
-
-
-  Game game(1280 , 720, "Teleport!");
+  Game game(1920 , 1080, "Teleport!");
 
   game.setMap(map);
   game.gameLoop();
