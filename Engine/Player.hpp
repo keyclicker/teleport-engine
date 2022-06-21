@@ -61,7 +61,7 @@ public:
    * @param d Movement vector
    */
   void move(const Vector &d) {
-    move(d.x, d.y);
+    pos += d;
   }
 
   /**

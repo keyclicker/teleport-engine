@@ -241,7 +241,7 @@ void Renderer::renderVisplane(const Vector &pos, const Map::Sector *sec,
   auto yTexSize = tex.getSize().y;
   auto xTexSize = tex.getSize().x;
 
-  for (int y = yBegin; isFloor == y < yEnd; isFloor ? ++y : --y) {
+  for (uint16_t y = yBegin; isFloor == y < yEnd; isFloor ? ++y : --y) {
     // Z coordinate of the row
     double rowZ = (double) h / -yBuffToScreen(y);
 
