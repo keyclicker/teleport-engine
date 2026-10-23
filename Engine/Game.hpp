@@ -7,6 +7,8 @@
 #include "Player.hpp"
 #include "Utils/Math.hpp"
 #include "Renderer.hpp"
+#include "TextRenderer.hpp"
+#include "Utils/FpsCounter.hpp"
 #include "Window.hpp"
 
 class Game {
@@ -22,6 +24,9 @@ private:
   // Owns the GL context, so it goes before the renderer's GL objects
   Window window;
   Renderer renderer;
+  TextRenderer text;
+
+  FpsCounter fps;
 
 public:
   Game(const Game &game) = delete;
@@ -45,6 +50,14 @@ public:
   void gameLoop();
 
 private:
+  /**
+   * @brief Draw the FPS counter over the presented frame
+   *
+   * @param width Framebuffer width in pixels
+   * @param height Framebuffer height in pixels
+   */
+  void drawHud(int width, int height);
+
   /**
    * @brief Move player considering walls collision
    * 

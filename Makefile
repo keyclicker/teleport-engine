@@ -22,7 +22,8 @@ ifeq ($(filter clean,$(MAKECMDGOALS)),)
 endif
 
 CPPFLAGS += -DRESOURCE_DIR='"$(RESOURCE_DIR)"'
-CPPFLAGS += $(shell pkg-config --cflags '$(PKGS)')
+# -isystem: warnings in library headers aren't ours to fix
+CPPFLAGS += $(patsubst -I%,-isystem %,$(shell pkg-config --cflags '$(PKGS)'))
 CXXFLAGS += -std=c++20 -Wall -Wextra -MMD -MP
 LDLIBS   += $(shell pkg-config --libs '$(PKGS)')
 
