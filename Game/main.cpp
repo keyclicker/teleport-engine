@@ -1,24 +1,38 @@
 #include "../Engine/Game.hpp"
 #include "../Engine/Map.hpp"
 
+#include <string>
+
+// Set by the build; the fallback works when run from the repo root
+#ifndef RESOURCE_DIR
+#define RESOURCE_DIR "Resources"
+#endif
+
 // This file inits map
 // There is definitely need in map format and map editor
+
+/**
+ * @brief Path to a texture in the resource directory
+ */
+static std::string texture(const char *name) {
+  return std::string(RESOURCE_DIR) + "/Textures/" + name;
+}
 
 int main() {
   auto map = new Map();
 
   auto portalSide = std::make_shared<Map::Side >();
 
-  portalSide->upper.loadFromFile("../Resources/Textures/brick.png");
-  portalSide->lower.loadFromFile("../Resources/Textures/brick.png");
+  portalSide->upper.loadFromFile(texture("brick.png"));
+  portalSide->lower.loadFromFile(texture("brick.png"));
 
   auto side1 = std::make_shared<Map::Side >();
-  side1->middle.loadFromFile("../Resources/Textures/wall.gif");
+  side1->middle.loadFromFile(texture("wall.gif"));
 
   auto sec1 = new Map::Sector(map);
 
-  sec1->ceiling.loadFromFile("../Resources/Textures/ceiling.gif");
-  sec1->floor.loadFromFile("../Resources/Textures/stone.png");
+  sec1->ceiling.loadFromFile(texture("ceiling.gif"));
+  sec1->floor.loadFromFile(texture("stone.png"));
 
   sec1->ceilingheight = 200;
   sec1->floorheight = 0;
@@ -39,12 +53,12 @@ int main() {
 
   auto side2 = std::make_shared<Map::Side >();
   side2->middle = sf::Image();
-  side2->middle.loadFromFile("../Resources/Textures/wall.gif");
+  side2->middle.loadFromFile(texture("wall.gif"));
 
   auto sec2 = new Map::Sector(map);
 
-  sec2->ceiling.loadFromFile("../Resources/Textures/ceiling.gif");
-  sec2->floor.loadFromFile("../Resources/Textures/floor.gif");
+  sec2->ceiling.loadFromFile(texture("ceiling.gif"));
+  sec2->floor.loadFromFile(texture("floor.gif"));
 
   sec2->ceilingheight = 150;
   sec2->floorheight = 20;
@@ -59,8 +73,8 @@ int main() {
   portal2->portal = portal1;
 
   auto sec3 = new Map::Sector(map);
-  sec3->ceiling.loadFromFile("../Resources/Textures/ceiling.gif");
-  sec3->floor.loadFromFile("../Resources/Textures/floor.gif");
+  sec3->ceiling.loadFromFile(texture("ceiling.gif"));
+  sec3->floor.loadFromFile(texture("floor.gif"));
 
   sec3->ceilingheight = 300;
   sec3->floorheight = 40;
@@ -73,8 +87,8 @@ int main() {
   portal4->portal = portal3;
 
   auto stair1 = new Map::Sector(map);
-  stair1->ceiling.loadFromFile("../Resources/Textures/ceiling.gif");
-  stair1->floor.loadFromFile("../Resources/Textures/floor.gif");
+  stair1->ceiling.loadFromFile(texture("ceiling.gif"));
+  stair1->floor.loadFromFile(texture("floor.gif"));
 
   stair1->ceilingheight = 300;
   stair1->floorheight = 60;
@@ -88,8 +102,8 @@ int main() {
   sp1->portal = sp0;
 
   auto stair2 = new Map::Sector(map);
-  stair2->ceiling.loadFromFile("../Resources/Textures/ceiling.gif");
-  stair2->floor.loadFromFile("../Resources/Textures/floor.gif");
+  stair2->ceiling.loadFromFile(texture("ceiling.gif"));
+  stair2->floor.loadFromFile(texture("floor.gif"));
 
   stair2->ceilingheight = 300;
   stair2->floorheight = 80;
@@ -103,8 +117,8 @@ int main() {
   sp3->portal = sp2;
 
   auto stair3 = new Map::Sector(map);
-  stair3->ceiling.loadFromFile("../Resources/Textures/ceiling.gif");
-  stair3->floor.loadFromFile("../Resources/Textures/floor.gif");
+  stair3->ceiling.loadFromFile(texture("ceiling.gif"));
+  stair3->floor.loadFromFile(texture("floor.gif"));
 
   stair3->ceilingheight = 300;
   stair3->floorheight = 100;
@@ -118,8 +132,8 @@ int main() {
   sp5->portal = sp4;
 
   auto stair4 = new Map::Sector(map);
-  stair4->ceiling.loadFromFile("../Resources/Textures/ceiling.gif");
-  stair4->floor.loadFromFile("../Resources/Textures/floor.gif");
+  stair4->ceiling.loadFromFile(texture("ceiling.gif"));
+  stair4->floor.loadFromFile(texture("floor.gif"));
 
   stair4->ceilingheight = 300;
   stair4->floorheight = 120;
@@ -133,17 +147,17 @@ int main() {
   sp7->portal = sp6;
 
   auto secret = new Map::Sector(map);
-  secret->ceiling.loadFromFile("../Resources/Textures/ceiling.gif");
-  secret->floor.loadFromFile("../Resources/Textures/floor.gif");
+  secret->ceiling.loadFromFile(texture("ceiling.gif"));
+  secret->floor.loadFromFile(texture("floor.gif"));
 
   secret->ceilingheight = 300;
   secret->floorheight = 140;
 
   auto sideHi = std::make_shared<Map::Side >();
-  sideHi->middle.loadFromFile("../Resources/Textures/hitler.png");
+  sideHi->middle.loadFromFile(texture("hitler.png"));
 
   auto sideX = std::make_shared<Map::Side >();
-  sideX->middle.loadFromFile("../Resources/Textures/sw.png");
+  sideX->middle.loadFromFile(texture("sw.png"));
 
   auto sp9 = new Map::Line(secret, {400, 0}, {800, 0}, portalSide);
   new Map::Line(secret, {800, 0}, {800, -400}, sideX);
@@ -154,8 +168,8 @@ int main() {
   sp9->portal = sp8;
 
   auto tunel = new Map::Sector(map);
-  tunel->ceiling.loadFromFile("../Resources/Textures/ceiling.gif");
-  tunel->floor.loadFromFile("../Resources/Textures/floor.gif");
+  tunel->ceiling.loadFromFile(texture("ceiling.gif"));
+  tunel->floor.loadFromFile(texture("floor.gif"));
 
   tunel->ceilingheight = 150;
   tunel->floorheight = 0;
@@ -173,8 +187,8 @@ int main() {
   loop2->portal = loop1;
 
   auto tunel1 = new Map::Sector(map);
-  tunel1->ceiling.loadFromFile("../Resources/Textures/ceiling.gif");
-  tunel1->floor.loadFromFile("../Resources/Textures/floor.gif");
+  tunel1->ceiling.loadFromFile(texture("ceiling.gif"));
+  tunel1->floor.loadFromFile(texture("floor.gif"));
 
   tunel1->ceilingheight = 150;
   tunel1->floorheight = 0;
