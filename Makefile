@@ -8,7 +8,6 @@ RESOURCE_DIR ?= Resources
 BUILD_DIR ?= build
 TARGET    := $(BUILD_DIR)/teleport-engine
 
-# -O0 crashes the renderer (modulo by an empty texture's zero width)
 CXXFLAGS ?= -O2 -g
 
 SFML := sfml-graphics >= 2.5 sfml-graphics < 3

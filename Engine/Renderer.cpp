@@ -3,6 +3,31 @@
 
 #include <iostream> // for debugging
 
+/**
+ * @brief Whether a wall part has anything to draw
+ *
+ * @param tex Part texture, empty if the side has none
+ * @param height Part height in map units, <= 0 if the part is hidden
+ */
+static inline bool isDrawable(const sf::Image &tex, double height) {
+  return height > 0 && tex.getSize().x > 0 && tex.getSize().y > 0;
+}
+
+/**
+ * @brief Texture x coordinate of a wall column
+ *
+ * Scales the texture so its height matches the part's height.
+ *
+ * @param tex Part texture, must be drawable
+ * @param dist Column distance from the wall start in map units
+ * @param height Part height in map units, must be > 0
+ */
+static inline uint16_t textureX(const sf::Image &tex, double dist,
+                                double height) {
+  // uint32_t, not uint16_t: long walls overflow 16 bits before the modulo
+  return uint32_t(tex.getSize().y * dist / height) % tex.getSize().x;
+}
+
 void Renderer::renderFrame() {
   visitedSectors.clear();
   vClip = std::vector<Segment<>>{bf.getWidth(), Segment<>{1, -1}};
@@ -105,8 +130,9 @@ Clip Renderer::renderPlane(Plane plane, Clip clip, const Map::Line *line,
 
   // Calculating the height of the wall in screen coordinates
   double height = line->sector->ceilingheight - line->sector->floorheight;
-  double upperHeight, lowerHeight,
-      upperEndL, upperEndR, lowerBeginL, lowerBeginR;
+  // Portal-only geometry
+  double upperHeight = 0, lowerHeight = 0;
+  double upperEndL = 0, upperEndR = 0, lowerBeginL = 0, lowerBeginR = 0;
 
   if (line->portal) {
     upperHeight = line->sector->ceilingheight - line->portal->sector->ceilingheight;
@@ -132,6 +158,11 @@ Clip Renderer::renderPlane(Plane plane, Clip clip, const Map::Line *line,
   auto &lowerT = line->side->lower;
   auto &upperT = line->side->upper;
 
+  // Wall parts that have something to draw
+  bool drawUpper = line->portal && isDrawable(upperT, upperHeight);
+  bool drawLower = line->portal && isDrawable(lowerT, lowerHeight);
+  bool drawMiddle = !line->portal && isDrawable(middleT, height);
+
   // Iterating over the columns
   for (uint16_t x = hSeg.begin; x < hSeg.end; ++x) {
     // Calculating k for interpolation
@@ -149,14 +180,8 @@ Clip Renderer::renderPlane(Plane plane, Clip clip, const Map::Line *line,
     auto cx = cy * interpolate(ctLine.begin.x / ctLine.begin.y,
                                ctLine.end.x / ctLine.end.y, kx);
 
-    // Calculating texture x coordinate for all the textures
-    auto txk = ((Vector{cx, cy} - tLine.begin).length());
-    auto txu = uint16_t(
-        upperT.getSize().y * txk / upperHeight) % upperT.getSize().x;
-    auto txm = uint16_t(
-        middleT.getSize().y * txk / height) % middleT.getSize().x;
-    auto txl = uint16_t(
-        lowerT.getSize().y * txk / lowerHeight) % lowerT.getSize().x;
+    // Column distance from the wall start, for texture x coordinates
+    auto txk = (Vector{cx, cy} - tLine.begin).length();
 
     // Clamped buff segment of the column
     Segment vBuffSeg = vScreenToBuff(clip.vSegClamp(x, vSeg));
@@ -175,28 +200,35 @@ Clip Renderer::renderPlane(Plane plane, Clip clip, const Map::Line *line,
       auto lowerBeginBuff = yScreenToBuff(clip.vClamp(x, lowerBegin));
 
       // Rendering the upper wall
-      double tyk =  upperT.getSize().y  / (upperEnd - vSeg.begin);
-      for (uint16_t y = vBuffSeg.begin; y < upperEndBuff; ++y) {
-        uint16_t ty = uint16_t (tyk *
-            (yBuffToScreen(y) - vSeg.begin)) % upperT.getSize().y;
-        auto c = upperT.getPixel(txu, ty); c.a = ca;
-        bf.setPixel(x, y, c);
+      if (drawUpper) {
+        auto txu = textureX(upperT, txk, upperHeight);
+        double tyk =  upperT.getSize().y  / (upperEnd - vSeg.begin);
+        for (uint16_t y = vBuffSeg.begin; y < upperEndBuff; ++y) {
+          uint16_t ty = uint16_t (tyk *
+              (yBuffToScreen(y) - vSeg.begin)) % upperT.getSize().y;
+          auto c = upperT.getPixel(txu, ty); c.a = ca;
+          bf.setPixel(x, y, c);
+        }
       }
 
       // Rendering the lower wall
-      tyk =  lowerT.getSize().y  / (vSeg.end - lowerBegin);
-      for (uint16_t y = lowerBeginBuff; y < vBuffSeg.end; ++y) {
-        uint16_t ty = uint16_t (tyk *
-            (yBuffToScreen(y) - lowerBegin)) % lowerT.getSize().y;;
-        auto c = lowerT.getPixel(txl, ty); c.a = ca;
-        bf.setPixel(x, y, c);
+      if (drawLower) {
+        auto txl = textureX(lowerT, txk, lowerHeight);
+        double tyk =  lowerT.getSize().y  / (vSeg.end - lowerBegin);
+        for (uint16_t y = lowerBeginBuff; y < vBuffSeg.end; ++y) {
+          uint16_t ty = uint16_t (tyk *
+              (yBuffToScreen(y) - lowerBegin)) % lowerT.getSize().y;
+          auto c = lowerT.getPixel(txl, ty); c.a = ca;
+          bf.setPixel(x, y, c);
+        }
       }
-    } else {
+    } else if (drawMiddle) {
       // Rendering the middle wall
+      auto txm = textureX(middleT, txk, height);
       auto tyk =  middleT.getSize().y  / (vSeg.end - vSeg.begin);
       for (uint16_t y = vBuffSeg.begin; y < vBuffSeg.end; ++y) {
         uint16_t ty = uint16_t (tyk *
-            (yBuffToScreen(y) - vSeg.begin)) % middleT.getSize().y;;
+            (yBuffToScreen(y) - vSeg.begin)) % middleT.getSize().y;
         auto c = middleT.getPixel(txm, ty); c.a = ca;
         bf.setPixel(x, y, c);
       }
