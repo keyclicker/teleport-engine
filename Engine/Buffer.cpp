@@ -1,7 +1,5 @@
 #include "Buffer.hpp"
-
-#include <stdexcept>
-#include <string>
+#include "Shader.hpp"
 
 // ---- Present shader ----------------------------------------------------
 
@@ -36,64 +34,10 @@ void main() {
 }
 )";
 
-/**
- * @brief Compile one shader stage
- *
- * @throw std::runtime_error With the compiler log
- */
-static GLuint compileShader(GLenum type, const char *source) {
-  GLuint shader = glCreateShader(type);
-  glShaderSource(shader, 1, &source, nullptr);
-  glCompileShader(shader);
-
-  GLint ok;
-  glGetShaderiv(shader, GL_COMPILE_STATUS, &ok);
-
-  if (!ok) {
-    char log[1024];
-    glGetShaderInfoLog(shader, sizeof(log), nullptr, log);
-    glDeleteShader(shader);
-    throw std::runtime_error(std::string("Shader compilation failed: ") + log);
-  }
-
-  return shader;
-}
-
-/**
- * @brief Compile and link the present program
- *
- * @throw std::runtime_error With the compiler or linker log
- */
-static GLuint buildProgram() {
-  GLuint vertex = compileShader(GL_VERTEX_SHADER, VERTEX_SHADER);
-  GLuint fragment = compileShader(GL_FRAGMENT_SHADER, FRAGMENT_SHADER);
-
-  GLuint program = glCreateProgram();
-  glAttachShader(program, vertex);
-  glAttachShader(program, fragment);
-  glLinkProgram(program);
-
-  // The program keeps them alive while attached
-  glDeleteShader(vertex);
-  glDeleteShader(fragment);
-
-  GLint ok;
-  glGetProgramiv(program, GL_LINK_STATUS, &ok);
-
-  if (!ok) {
-    char log[1024];
-    glGetProgramInfoLog(program, sizeof(log), nullptr, log);
-    glDeleteProgram(program);
-    throw std::runtime_error(std::string("Shader linking failed: ") + log);
-  }
-
-  return program;
-}
-
 // ---- Buffer ------------------------------------------------------------
 
 Buffer::Buffer(uint16_t width, uint16_t height): frame(width, height) {
-  program = buildProgram();
+  program = buildProgram(VERTEX_SHADER, FRAGMENT_SHADER);
 
   // Core profile refuses to draw without a bound VAO, even an empty one
   glGenVertexArrays(1, &vao);

@@ -1,7 +1,8 @@
-#include <iostream> //todo for debug
+#include <algorithm>
 #include <vector>
 #include <cmath>
 #include <chrono>
+#include <format>
 
 #include "Game.hpp"
 #include "Utils/Math.hpp"
@@ -17,7 +18,8 @@ void Game::gameLoop() {
     window.pollEvents();
 
     auto now = Clock::now();
-    auto ep = std::chrono::duration<double>(now - lastFrame).count() * speed;
+    auto dt = std::chrono::duration<double>(now - lastFrame).count();
+    auto ep = dt * speed;
     lastFrame = now;
 
     if (window.isKeyPressed(GLFW_KEY_LEFT_BRACKET)) {
@@ -63,20 +65,25 @@ void Game::gameLoop() {
       player.shake(ep);
     }
 
-    static auto d = 0.0;
-
-    d += ep;
-    if (d > 1) {
-      d = 0;
-      std::cout << 1.0/ep << std::endl;
-    }
-
     renderer.renderFrame();
+    fps.tick(dt);
 
     auto [width, height] = window.getFramebufferSize();
     renderer.bf.present(width, height);
+    drawHud(width, height);
     window.display();
   }
+}
+
+void Game::drawHud(int width, int height) {
+  // 3 at 1080p: stays readable as the window grows
+  float scale = std::max(1, height / 360);
+
+  auto stats = std::format("{:.0f} FPS  {:.1f} ms",
+                           fps.getFps(), fps.getFrameTime());
+
+  text.print(stats, 4 * scale, 4 * scale, scale, {255, 255, 0});
+  text.render(width, height);
 }
 
 
