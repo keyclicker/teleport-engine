@@ -7,6 +7,7 @@
 #include "Player.hpp"
 #include "Utils/Math.hpp"
 #include "Renderer.hpp"
+#include "Window.hpp"
 
 class Game {
 private:
@@ -18,14 +19,16 @@ private:
   // Sector that player currently is in
   Map::Sector *activeSector{};
 
+  // Owns the GL context, so it goes before the renderer's GL objects
+  Window window;
   Renderer renderer;
 
 public:
   Game(const Game &game) = delete;
   Game &operator=(const Game &game) = delete;
 
-  Game(uint16_t width, uint16_t height, char *str):
-    renderer(width, height, str, this) {}
+  Game(uint16_t width, uint16_t height, const char *title):
+    window(width, height, title), renderer(width, height, this) {}
 
   void setMap(Map *m) { //todo move
     map = m;

@@ -5,21 +5,19 @@ you to the other side of the map.
 
 ## Build
 
-Needs SFML 2 and `pkg-config`. Nix pins both:
+Needs GLFW 3, libepoxy, stb and `pkg-config`, plus OpenGL 3.3. Nix pins
+all of them:
 
 ```sh
 nix run        # build and play
-nix develop    # shell with SFML 2, make and pkg-config
+nix develop    # shell with the libraries, make and pkg-config
 make run       # inside that shell
 ```
 
-Without Nix, install SFML 2 and `pkg-config` yourself, then `make run`.
-Distros now ship SFML 3 (e.g. Ubuntu 26.04's `libsfml-dev`), which this
-code doesn't support yet. On macOS:
+Without Nix, install them yourself, then `make run`. On Debian/Ubuntu:
 
 ```sh
-brew install sfml@2 pkg-config
-export PKG_CONFIG_PATH="$(brew --prefix sfml@2)/lib/pkgconfig"
+sudo apt install libglfw3-dev libepoxy-dev libstb-dev pkg-config
 ```
 
 On Linux outside NixOS, Nix-built OpenGL apps don't see the system GPU

@@ -1,58 +1,65 @@
 #include <iostream> //todo for debug
 #include <vector>
 #include <cmath>
+#include <chrono>
 
 #include "Game.hpp"
 #include "Utils/Math.hpp"
 #include "Renderer.hpp"
 
 void Game::gameLoop() {
-  sf::Clock cl;
+  using Clock = std::chrono::steady_clock;
+
+  auto lastFrame = Clock::now();
   double speed = 1;
 
-  while (renderer.bf.display()) {
-    auto ep = cl.restart().asSeconds() * speed;
+  while (window.isOpen()) {
+    window.pollEvents();
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::LBracket)) {
+    auto now = Clock::now();
+    auto ep = std::chrono::duration<double>(now - lastFrame).count() * speed;
+    lastFrame = now;
+
+    if (window.isKeyPressed(GLFW_KEY_LEFT_BRACKET)) {
       speed /= pow(1.25, ep);
     }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::RBracket)) {
+    if (window.isKeyPressed(GLFW_KEY_RIGHT_BRACKET)) {
       speed *= pow(1.25, ep);
     }
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) ||
-       sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q) ) {
+    if (window.isKeyPressed(GLFW_KEY_LEFT) ||
+       window.isKeyPressed(GLFW_KEY_Q) ) {
       player.rotate(2 * ep);
     }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) ||
-       sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E)) {
+    if (window.isKeyPressed(GLFW_KEY_RIGHT) ||
+       window.isKeyPressed(GLFW_KEY_E)) {
       player.rotate(-2 * ep);
     }
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
+    if (window.isKeyPressed(GLFW_KEY_W)) {
       move(player.dir * (ep * 300));
     }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
+    if (window.isKeyPressed(GLFW_KEY_S)) {
       move(-player.dir * (ep * 300));
     }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
+    if (window.isKeyPressed(GLFW_KEY_A)) {
       move(-player.plane * (ep * 300));
     }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
+    if (window.isKeyPressed(GLFW_KEY_D)) {
       move(player.plane * (ep * 300));
     }
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z)) {
+    if (window.isKeyPressed(GLFW_KEY_Z)) {
       player.setHeight(player.getHeight() + ep * 20);
     }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X)) {
+    if (window.isKeyPressed(GLFW_KEY_X)) {
       player.setHeight(player.getHeight() - ep * 20);
     }
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W) ||
-        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S) ||
-        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A) ||
-        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
+    if (window.isKeyPressed(GLFW_KEY_W) ||
+        window.isKeyPressed(GLFW_KEY_S) ||
+        window.isKeyPressed(GLFW_KEY_A) ||
+        window.isKeyPressed(GLFW_KEY_D)) {
       player.shake(ep);
     }
 
@@ -65,6 +72,10 @@ void Game::gameLoop() {
     }
 
     renderer.renderFrame();
+
+    auto [width, height] = window.getFramebufferSize();
+    renderer.bf.present(width, height);
+    window.display();
   }
 }
 

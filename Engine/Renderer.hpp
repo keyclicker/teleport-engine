@@ -27,8 +27,8 @@ private:
   std::set<std::tuple<Map::Sector*, double, double>> visitedSectors;
 
 public:
-  Renderer(uint16_t width, uint16_t height, char *str, Game *game):
-    bf(width, height, str), game(game) {}
+  Renderer(uint16_t width, uint16_t height, Game *game):
+    game(game), bf(width, height) {}
 
   void renderFrame();
 
