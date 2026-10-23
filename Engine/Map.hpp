@@ -1,5 +1,5 @@
 #pragma once
-#include <SFML/Graphics.hpp>
+#include "Image.hpp"
 #include <utility>
 #include <vector>
 #include <list>
@@ -13,9 +13,9 @@ struct Map {
   struct Line;
 
   struct Side {
-    sf::Image upper;
-    sf::Image middle;
-    sf::Image lower;
+    Image upper;
+    Image middle;
+    Image lower;
   };
 
   struct Sector {
@@ -23,8 +23,8 @@ struct Map {
     double floorheight = -64;
     double ceilingheight = 80;
 
-    sf::Image floor;
-    sf::Image ceiling;
+    Image floor;
+    Image ceiling;
 
     std::vector<Line*> lines;
 

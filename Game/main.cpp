@@ -52,7 +52,6 @@ int main() {
   auto portal1 = new Map::Line(sec1, {0, 600}, {400, 400}, portalSide);
 
   auto side2 = std::make_shared<Map::Side >();
-  side2->middle = sf::Image();
   side2->middle.loadFromFile(texture("wall.gif"));
 
   auto sec2 = new Map::Sector(map);

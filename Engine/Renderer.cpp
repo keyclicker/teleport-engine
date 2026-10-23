@@ -9,8 +9,8 @@
  * @param tex Part texture, empty if the side has none
  * @param height Part height in map units, <= 0 if the part is hidden
  */
-static inline bool isDrawable(const sf::Image &tex, double height) {
-  return height > 0 && tex.getSize().x > 0 && tex.getSize().y > 0;
+static inline bool isDrawable(const Image &tex, double height) {
+  return height > 0 && tex.getWidth() > 0 && tex.getHeight() > 0;
 }
 
 /**
@@ -22,10 +22,10 @@ static inline bool isDrawable(const sf::Image &tex, double height) {
  * @param dist Column distance from the wall start in map units
  * @param height Part height in map units, must be > 0
  */
-static inline uint16_t textureX(const sf::Image &tex, double dist,
+static inline uint16_t textureX(const Image &tex, double dist,
                                 double height) {
   // uint32_t, not uint16_t: long walls overflow 16 bits before the modulo
-  return uint32_t(tex.getSize().y * dist / height) % tex.getSize().x;
+  return uint32_t(tex.getHeight() * dist / height) % tex.getWidth();
 }
 
 void Renderer::renderFrame() {
@@ -202,10 +202,10 @@ Clip Renderer::renderPlane(Plane plane, Clip clip, const Map::Line *line,
       // Rendering the upper wall
       if (drawUpper) {
         auto txu = textureX(upperT, txk, upperHeight);
-        double tyk =  upperT.getSize().y  / (upperEnd - vSeg.begin);
+        double tyk =  upperT.getHeight()  / (upperEnd - vSeg.begin);
         for (uint16_t y = vBuffSeg.begin; y < upperEndBuff; ++y) {
           uint16_t ty = uint16_t (tyk *
-              (yBuffToScreen(y) - vSeg.begin)) % upperT.getSize().y;
+              (yBuffToScreen(y) - vSeg.begin)) % upperT.getHeight();
           auto c = upperT.getPixel(txu, ty); c.a = ca;
           bf.setPixel(x, y, c);
         }
@@ -214,10 +214,10 @@ Clip Renderer::renderPlane(Plane plane, Clip clip, const Map::Line *line,
       // Rendering the lower wall
       if (drawLower) {
         auto txl = textureX(lowerT, txk, lowerHeight);
-        double tyk =  lowerT.getSize().y  / (vSeg.end - lowerBegin);
+        double tyk =  lowerT.getHeight()  / (vSeg.end - lowerBegin);
         for (uint16_t y = lowerBeginBuff; y < vBuffSeg.end; ++y) {
           uint16_t ty = uint16_t (tyk *
-              (yBuffToScreen(y) - lowerBegin)) % lowerT.getSize().y;
+              (yBuffToScreen(y) - lowerBegin)) % lowerT.getHeight();
           auto c = lowerT.getPixel(txl, ty); c.a = ca;
           bf.setPixel(x, y, c);
         }
@@ -225,10 +225,10 @@ Clip Renderer::renderPlane(Plane plane, Clip clip, const Map::Line *line,
     } else if (drawMiddle) {
       // Rendering the middle wall
       auto txm = textureX(middleT, txk, height);
-      auto tyk =  middleT.getSize().y  / (vSeg.end - vSeg.begin);
+      auto tyk =  middleT.getHeight()  / (vSeg.end - vSeg.begin);
       for (uint16_t y = vBuffSeg.begin; y < vBuffSeg.end; ++y) {
         uint16_t ty = uint16_t (tyk *
-            (yBuffToScreen(y) - vSeg.begin)) % middleT.getSize().y;
+            (yBuffToScreen(y) - vSeg.begin)) % middleT.getHeight();
         auto c = middleT.getPixel(txm, ty); c.a = ca;
         bf.setPixel(x, y, c);
       }
@@ -270,8 +270,8 @@ void Renderer::renderVisplane(const Vector &pos, const Map::Sector *sec,
   auto xBegin = hClipBuff.begin;
   auto xEnd = hClipBuff.end;
 
-  auto yTexSize = tex.getSize().y;
-  auto xTexSize = tex.getSize().x;
+  auto yTexSize = tex.getHeight();
+  auto xTexSize = tex.getWidth();
 
   for (uint16_t y = yBegin; isFloor == y < yEnd; isFloor ? ++y : --y) {
     // Z coordinate of the row
@@ -304,7 +304,7 @@ void Renderer::renderVisplane(const Vector &pos, const Map::Sector *sec,
 void Renderer::__debugRenderVClip() {
   for (uint16_t x = 0; x < bf.getWidth(); ++x) {
     for (uint16_t y = yScreenToBuff(vClip[x].begin); y < yScreenToBuff(vClip[x].end); ++y) {
-      bf.setPixel(x, y, sf::Color(0, 20, 0, 20) + bf.getPixel(x, y));
+      bf.setPixel(x, y, Color{0, 20, 0, 20} + bf.getPixel(x, y));
     }
   }
 }

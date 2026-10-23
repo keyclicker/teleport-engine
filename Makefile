@@ -1,4 +1,4 @@
-# Teleport Engine build. SFML 2 comes from pkg-config: see README.md.
+# Teleport Engine build. Dependencies come from pkg-config: see README.md.
 
 # ---- Configuration -----------------------------------------------------
 
@@ -10,20 +10,21 @@ TARGET    := $(BUILD_DIR)/teleport-engine
 
 CXXFLAGS ?= -O2 -g
 
-SFML := sfml-graphics >= 2.5 sfml-graphics < 3
+# Window and input, GL function loader, image decoding
+PKGS := glfw3 >= 3.3 epoxy stb
 
 # ---- Dependencies ------------------------------------------------------
 
 ifeq ($(filter clean,$(MAKECMDGOALS)),)
-  ifneq ($(shell pkg-config --exists '$(SFML)' 2>/dev/null && echo ok),ok)
-    $(error SFML 2 not found by pkg-config. Run `nix develop`, see README.md)
+  ifneq ($(shell pkg-config --exists '$(PKGS)' 2>/dev/null && echo ok),ok)
+    $(error $(PKGS) not found by pkg-config. Run `nix develop`, see README.md)
   endif
 endif
 
 CPPFLAGS += -DRESOURCE_DIR='"$(RESOURCE_DIR)"'
-CPPFLAGS += $(shell pkg-config --cflags sfml-graphics)
+CPPFLAGS += $(shell pkg-config --cflags '$(PKGS)')
 CXXFLAGS += -std=c++20 -Wall -Wextra -MMD -MP
-LDLIBS   += $(shell pkg-config --libs sfml-graphics)
+LDLIBS   += $(shell pkg-config --libs '$(PKGS)')
 
 # ---- Targets -----------------------------------------------------------
 

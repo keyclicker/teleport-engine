@@ -24,8 +24,7 @@
 
           nativeBuildInputs = [ pkgs.pkg-config ];
 
-          # The code targets the SFML 2 API; `sfml` is SFML 3
-          buildInputs = [ pkgs.sfml_2 ];
+          buildInputs = [ pkgs.glfw pkgs.libepoxy pkgs.stb ];
 
           enableParallelBuilding = true;
           makeFlags = [
