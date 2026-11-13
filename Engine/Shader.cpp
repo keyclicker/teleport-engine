@@ -3,14 +3,24 @@
 #include <stdexcept>
 #include <string>
 
+// Prepended to every stage, so the sources stay the same on both APIs.
+// ES has no default float precision in fragment shaders
+#ifdef __EMSCRIPTEN__
+static const char *GLSL_HEADER = "#version 300 es\nprecision highp float;\n";
+#else
+static const char *GLSL_HEADER = "#version 330 core\n";
+#endif
+
 /**
  * @brief Compile one shader stage
  *
  * @throw std::runtime_error With the compiler log
  */
 static GLuint compileShader(GLenum type, const char *source) {
+  const char *parts[] = {GLSL_HEADER, source};
+
   GLuint shader = glCreateShader(type);
-  glShaderSource(shader, 1, &source, nullptr);
+  glShaderSource(shader, 2, parts, nullptr);
   glCompileShader(shader);
 
   GLint ok;

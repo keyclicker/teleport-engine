@@ -4,75 +4,87 @@
 #include <chrono>
 #include <format>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include "Game.hpp"
 #include "Utils/Math.hpp"
 #include "Renderer.hpp"
 
 void Game::gameLoop() {
-  using Clock = std::chrono::steady_clock;
+  lastFrame = Clock::now();
 
-  auto lastFrame = Clock::now();
-  double speed = 1;
-
+#ifdef __EMSCRIPTEN__
+  // The browser owns the loop: run a frame per requestAnimationFrame.
+  // This never returns, so the caller must keep the Game alive
+  emscripten_set_main_loop_arg(
+    [](void *game) { static_cast<Game *>(game)->frame(); }, this, 0, true);
+#else
   while (window.isOpen()) {
-    window.pollEvents();
-
-    auto now = Clock::now();
-    auto dt = std::chrono::duration<double>(now - lastFrame).count();
-    auto ep = dt * speed;
-    lastFrame = now;
-
-    if (window.isKeyPressed(GLFW_KEY_LEFT_BRACKET)) {
-      speed /= pow(1.25, ep);
-    }
-    if (window.isKeyPressed(GLFW_KEY_RIGHT_BRACKET)) {
-      speed *= pow(1.25, ep);
-    }
-
-    if (window.isKeyPressed(GLFW_KEY_LEFT) ||
-       window.isKeyPressed(GLFW_KEY_Q) ) {
-      player.rotate(2 * ep);
-    }
-    if (window.isKeyPressed(GLFW_KEY_RIGHT) ||
-       window.isKeyPressed(GLFW_KEY_E)) {
-      player.rotate(-2 * ep);
-    }
-
-    if (window.isKeyPressed(GLFW_KEY_W)) {
-      move(player.dir * (ep * 300));
-    }
-    if (window.isKeyPressed(GLFW_KEY_S)) {
-      move(-player.dir * (ep * 300));
-    }
-    if (window.isKeyPressed(GLFW_KEY_A)) {
-      move(-player.plane * (ep * 300));
-    }
-    if (window.isKeyPressed(GLFW_KEY_D)) {
-      move(player.plane * (ep * 300));
-    }
-
-    if (window.isKeyPressed(GLFW_KEY_Z)) {
-      player.setHeight(player.getHeight() + ep * 20);
-    }
-    if (window.isKeyPressed(GLFW_KEY_X)) {
-      player.setHeight(player.getHeight() - ep * 20);
-    }
-
-    if (window.isKeyPressed(GLFW_KEY_W) ||
-        window.isKeyPressed(GLFW_KEY_S) ||
-        window.isKeyPressed(GLFW_KEY_A) ||
-        window.isKeyPressed(GLFW_KEY_D)) {
-      player.shake(ep);
-    }
-
-    renderer.renderFrame();
-    fps.tick(dt);
-
-    auto [width, height] = window.getFramebufferSize();
-    renderer.bf.present(width, height);
-    drawHud(width, height);
-    window.display();
+    frame();
   }
+#endif
+}
+
+void Game::frame() {
+  window.pollEvents();
+
+  auto now = Clock::now();
+  auto dt = std::chrono::duration<double>(now - lastFrame).count();
+  auto ep = dt * speed;
+  lastFrame = now;
+
+  if (window.isKeyPressed(GLFW_KEY_LEFT_BRACKET)) {
+    speed /= pow(1.25, ep);
+  }
+  if (window.isKeyPressed(GLFW_KEY_RIGHT_BRACKET)) {
+    speed *= pow(1.25, ep);
+  }
+
+  if (window.isKeyPressed(GLFW_KEY_LEFT) ||
+     window.isKeyPressed(GLFW_KEY_Q) ) {
+    player.rotate(2 * ep);
+  }
+  if (window.isKeyPressed(GLFW_KEY_RIGHT) ||
+     window.isKeyPressed(GLFW_KEY_E)) {
+    player.rotate(-2 * ep);
+  }
+
+  if (window.isKeyPressed(GLFW_KEY_W)) {
+    move(player.dir * (ep * 300));
+  }
+  if (window.isKeyPressed(GLFW_KEY_S)) {
+    move(-player.dir * (ep * 300));
+  }
+  if (window.isKeyPressed(GLFW_KEY_A)) {
+    move(-player.plane * (ep * 300));
+  }
+  if (window.isKeyPressed(GLFW_KEY_D)) {
+    move(player.plane * (ep * 300));
+  }
+
+  if (window.isKeyPressed(GLFW_KEY_Z)) {
+    player.setHeight(player.getHeight() + ep * 20);
+  }
+  if (window.isKeyPressed(GLFW_KEY_X)) {
+    player.setHeight(player.getHeight() - ep * 20);
+  }
+
+  if (window.isKeyPressed(GLFW_KEY_W) ||
+      window.isKeyPressed(GLFW_KEY_S) ||
+      window.isKeyPressed(GLFW_KEY_A) ||
+      window.isKeyPressed(GLFW_KEY_D)) {
+    player.shake(ep);
+  }
+
+  renderer.renderFrame();
+  fps.tick(dt);
+
+  auto [width, height] = window.getFramebufferSize();
+  renderer.bf.present(width, height);
+  drawHud(width, height);
+  window.display();
 }
 
 void Game::drawHud(int width, int height) {

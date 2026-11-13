@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <vector>
 #include <memory>
 
@@ -28,6 +29,13 @@ private:
 
   FpsCounter fps;
 
+  using Clock = std::chrono::steady_clock;
+
+  Clock::time_point lastFrame;
+
+  // Time multiplier, `[` and `]` change it
+  double speed = 1;
+
 public:
   Game(const Game &game) = delete;
   Game &operator=(const Game &game) = delete;
@@ -45,11 +53,19 @@ public:
   }
 
   /**
-   * @brief Game loop
+   * @brief Game loop, returns once the window closes
+   *
+   * On the web it never returns and the browser calls frame() instead,
+   * so the Game must outlive the caller's scope, e.g. be `static`.
    */
   void gameLoop();
 
 private:
+  /**
+   * @brief Handle input, then render and present one frame
+   */
+  void frame();
+
   /**
    * @brief Draw the FPS counter over the presented frame
    *

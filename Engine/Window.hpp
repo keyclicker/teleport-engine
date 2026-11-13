@@ -1,7 +1,13 @@
 #pragma once
 
-// epoxy provides the GL headers, GLFW must not pull its own
+// The web gets OpenGL ES 3.0 (WebGL 2), desktops get epoxy's loader.
+// Either way GLFW must not pull its own GL header
+#ifdef __EMSCRIPTEN__
+#include <GLES3/gl3.h>
+#else
 #include <epoxy/gl.h>
+#endif
+
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
@@ -10,6 +16,7 @@
 /**
  * @brief GLFW window with a current OpenGL 3.3 core context
  *
+ * On the web it's a canvas with an OpenGL ES 3.0 (WebGL 2) context.
  * Construct it before anything that creates GL objects, destroy it after.
  */
 class Window {

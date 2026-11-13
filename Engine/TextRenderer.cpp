@@ -10,8 +10,6 @@
 // ---- Text shader -------------------------------------------------------
 
 static const char *VERTEX_SHADER = R"(
-#version 330 core
-
 uniform vec2 viewport;
 
 layout(location = 0) in vec2 position;
@@ -29,8 +27,6 @@ void main() {
 )";
 
 static const char *FRAGMENT_SHADER = R"(
-#version 330 core
-
 in vec4 vColor;
 out vec4 color;
 

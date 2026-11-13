@@ -5,8 +5,6 @@
 
 // Fullscreen triangle from gl_VertexID, so no vertex buffer is needed
 static const char *VERTEX_SHADER = R"(
-#version 330 core
-
 out vec2 uv;
 
 void main() {
@@ -19,8 +17,6 @@ void main() {
 )";
 
 static const char *FRAGMENT_SHADER = R"(
-#version 330 core
-
 uniform sampler2D frame;
 
 in vec2 uv;

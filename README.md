@@ -23,6 +23,20 @@ sudo apt install libglfw3-dev libepoxy-dev libstb-dev pkg-config
 On Linux outside NixOS, Nix-built OpenGL apps don't see the system GPU
 drivers: run the game through [nixGL](https://github.com/nix-community/nixGL).
 
+### Web
+
+The same code builds to WebAssembly with Emscripten and runs in any
+browser with WebGL 2:
+
+```sh
+nix build .#web          # result/: index.html, .js, .wasm, .data
+nix develop .#web        # shell with Emscripten, make and pkg-config
+make PLATFORM=web run    # inside that shell: http://localhost:8080
+                         # (PORT=8081 to pick another)
+```
+
+Serve the files over HTTP, browsers don't load `.wasm` from `file://`.
+
 ## Controls
 
 | Key | Action |

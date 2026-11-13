@@ -44,11 +44,45 @@
 
           meta.mainProgram = "teleport-engine";
         };
+
+        # WebAssembly page: serve the output dir over HTTP, see README.md
+        web = pkgs.stdenv.mkDerivation {
+          pname = "teleport-engine-web";
+          version = "0.1.0";
+          src = self;
+
+          nativeBuildInputs = [ pkgs.emscripten pkgs.pkg-config ];
+          buildInputs = [ pkgs.stb ];
+
+          enableParallelBuilding = true;
+          makeFlags = [ "PLATFORM=web" ];
+
+          # Emscripten writes into its cache, the store copy is read-only
+          preBuild = ''
+            export EM_CACHE=$TMPDIR/emscripten-cache
+            cp -r --no-preserve=mode \
+              ${pkgs.emscripten}/share/emscripten/cache $EM_CACHE
+          '';
+
+          installPhase = ''
+            runHook preInstall
+
+            mkdir -p $out
+            cp build-web/index.{html,js,wasm,data} $out/
+
+            runHook postInstall
+          '';
+        };
       });
 
       devShells = forAllSystems (pkgs: {
         default = pkgs.mkShell {
-          inputsFrom = [ self.packages.${pkgs.system}.default ];
+          inputsFrom = [ self.packages.${pkgs.stdenv.hostPlatform.system}.default ];
+        };
+
+        # `make PLATFORM=web` and `make PLATFORM=web run`
+        web = pkgs.mkShell {
+          inputsFrom = [ self.packages.${pkgs.stdenv.hostPlatform.system}.web ];
         };
       });
     };

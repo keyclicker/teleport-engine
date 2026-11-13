@@ -203,7 +203,8 @@ int main() {
   loop5->portal = loop0;
   loop0->portal = loop5;
 
-  Game game(1920 , 1080, "Teleport!");
+  // Static: on the web gameLoop() leaves main while frames still run
+  static Game game(1920 , 1080, "Teleport!");
 
   game.setMap(map);
   game.gameLoop();
