@@ -21,6 +21,10 @@ struct TraceHit {
   // Where it ended, in that sector's space
   Sector *sector = nullptr;
   Vec2 pos;
+  float z = 0;
+
+  // Ray direction there: portals may have turned it
+  Vec2 dir;
 
   // Along the ray, portals included
   float distance = 0;
@@ -112,20 +116,22 @@ public:
   MoveResult move(Entity &entity, Vec2 delta);
 
   /**
-   * @brief Cast a horizontal ray at height `z` through portals
+   * @brief Cast a ray through portals
    *
-   * Stops at solid walls, at portals whose opening misses `z`, and at
-   * blocking entities whose height spans `z`.
+   * Stops at solid walls, floors and ceilings, at portals whose opening
+   * the ray misses, and at blocking entities whose height it passes.
    *
    * @param sector Start sector
    * @param from Start, in that sector's space
-   * @param z Ray height
-   * @param dir Unit direction
-   * @param maxDistance Range
+   * @param z Start height
+   * @param dir Unit horizontal direction
+   * @param maxDistance Range, measured horizontally
    * @param ignored Entity the ray passes through, e.g. the shooter
+   * @param slope Height gained per unit of horizontal distance
    */
   TraceHit trace(Sector *sector, Vec2 from, float z, Vec2 dir,
-                 float maxDistance, const Entity *ignored = nullptr) const;
+                 float maxDistance, const Entity *ignored = nullptr,
+                 float slope = 0) const;
 };
 
 } // namespace te

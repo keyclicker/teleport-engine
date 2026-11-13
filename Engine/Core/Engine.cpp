@@ -105,14 +105,8 @@ void Engine::frameStep() {
 }
 
 void Engine::handleEngineKeys() {
-  // Click to play; the click itself isn't a game click
-  if (!input.isCaptured() &&
-      input.isButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
-    input.capture();
-    input.consumeButton(GLFW_MOUSE_BUTTON_LEFT);
-  }
-
-  // Browsers release pointer lock on Esc themselves
+  // Clicks capture the mouse, see Input. Browsers release pointer lock
+  // on Esc themselves
   if (input.isPressed(GLFW_KEY_ESCAPE)) input.release();
 
   if (input.isPressed(GLFW_KEY_F1)) showStats = !showStats;

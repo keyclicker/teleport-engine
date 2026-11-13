@@ -97,6 +97,12 @@ void TextRenderer::append(const std::string &text, float x, float y,
   }
 }
 
+float TextRenderer::measure(const std::string &text, float scale) {
+  // stb wants a mutable string
+  std::string chars = text;
+  return stb_easy_font_width(chars.data()) * scale;
+}
+
 void TextRenderer::reserveIndices(size_t quads) {
   if (quads <= indexedQuads) return;
 

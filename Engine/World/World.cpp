@@ -227,11 +227,15 @@ void World::crossPortals(Entity &entity, Vec2 from, Vec2 &step,
 // ---- Traces --------------------------------------------------------------
 
 TraceHit World::trace(Sector *sector, Vec2 from, float z, Vec2 dir,
-                      float maxDistance, const Entity *ignored) const {
+                      float maxDistance, const Entity *ignored,
+                      float slope) const {
   constexpr float INF = std::numeric_limits<float>::infinity();
 
   TraceHit hit;
   float travelled = 0;
+
+  // Ray height at a horizontal distance along this sector's part
+  auto heightAt = [&](float t) { return z + slope * (travelled + t); };
 
   for (int hop = 0; hop < MAX_TRACE_HOPS; ++hop) {
     // Wall the ray leaves through
@@ -254,13 +258,24 @@ TraceHit World::trace(Sector *sector, Vec2 from, float z, Vec2 dir,
       }
     }
 
-    // Nearest blocking entity before that wall
+    // Floor or ceiling first, if the slope gets there before the wall
+    float planeT = INF;
+
+    if (slope < 0) planeT = (sector->floor - heightAt(0)) / slope;
+    if (slope > 0) planeT = (sector->ceiling - heightAt(0)) / slope;
+
+    bool hitsPlane = planeT < exitT;
+    if (hitsPlane) {
+      exit = nullptr;
+      exitT = std::max(0.0f, planeT);
+    }
+
+    // Nearest blocking entity before that
     Entity *target = nullptr;
     float targetT = exitT;
 
     for (Entity *entity : sector->entities) {
       if (entity == ignored || !entity->blocking) continue;
-      if (z < entity->z || z > entity->z + entity->height) continue;
 
       Vec2 toCenter = entity->pos - from;
       float along = toCenter.dot(dir);
@@ -273,6 +288,9 @@ TraceHit World::trace(Sector *sector, Vec2 from, float z, Vec2 dir,
       if (t < 0) t = 0;
       if (along < 0 || t >= targetT) continue;
 
+      float h = heightAt(t);
+      if (h < entity->z || h > entity->z + entity->height) continue;
+
       target = entity;
       targetT = t;
     }
@@ -281,14 +299,18 @@ TraceHit World::trace(Sector *sector, Vec2 from, float z, Vec2 dir,
     bool inRange = travelled + stopT <= maxDistance;
 
     hit.sector = sector;
+    hit.dir = dir;
 
-    if (!inRange || (!target && !exit)) {
-      hit.pos = from + dir * (maxDistance - travelled);
+    if (!inRange || (!target && !exit && !hitsPlane)) {
+      float rest = maxDistance - travelled;
+      hit.pos = from + dir * rest;
+      hit.z = heightAt(rest);
       hit.distance = maxDistance;
       return hit;
     }
 
     hit.pos = from + dir * stopT;
+    hit.z = heightAt(stopT);
     hit.distance = travelled + stopT;
 
     if (target) {
@@ -297,9 +319,14 @@ TraceHit World::trace(Sector *sector, Vec2 from, float z, Vec2 dir,
       return hit;
     }
 
+    if (hitsPlane) {
+      hit.hit = true;
+      return hit;
+    }
+
     // Through the portal if the opening spans the ray's height
     const Sector *next = exit->next();
-    bool open = next && z > next->floor && z < next->ceiling;
+    bool open = next && hit.z > next->floor && hit.z < next->ceiling;
 
     if (!open) {
       hit.hit = true;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <cmath>
 #include <cstdint>
 #include <vector>
 
@@ -32,6 +33,16 @@ struct Camera {
 
   // Entity whose sprite isn't drawn, usually the one holding the camera
   const Entity *self = nullptr;
+
+  /**
+   * @brief Height gained per unit of distance along the screen center,
+   *        e.g. to aim where the crosshair points
+   *
+   * @param aspect Frame width / height
+   */
+  float centerSlope(float aspect) const {
+    return 2 * pitch * std::tan(fov / 2) / aspect;
+  }
 };
 
 /**

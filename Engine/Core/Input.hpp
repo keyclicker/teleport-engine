@@ -13,7 +13,8 @@ namespace te {
  * Keys and buttons are GLFW codes: `GLFW_KEY_W`, `GLFW_MOUSE_BUTTON_LEFT`.
  * "Pressed" means it went down since the previous frame. Mouse motion
  * is reported only while the mouse is captured (pointer lock on the
- * web), so it can steer a camera.
+ * web), so it can steer a camera. A click captures it; that click
+ * isn't reported.
  */
 class Input {
 private:
@@ -61,12 +62,6 @@ public:
   bool isButtonPressed(int button) const { return buttonsPressed[button]; }
 
   /**
-   * @brief Pretend a press didn't happen, e.g. the click that captured
-   *        the mouse
-   */
-  void consumeButton(int button) { buttonsPressed[button] = false; }
-
-  /**
    * @brief Mouse movement this frame in screen pixels, y goes down
    */
   Vec2 getMotion() const { return motion; }
@@ -78,7 +73,7 @@ public:
 
   /**
    * @brief Hide and lock the cursor; on the web, takes effect on the
-   *        next click or key press (browser rule)
+   *        next click (browsers allow it only inside input events)
    */
   void capture();
 

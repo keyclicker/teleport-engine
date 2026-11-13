@@ -27,11 +27,31 @@ Input::Input(Window &w): window(w.handle()) {
     if (button < 0 || button >= BUTTONS) return;
 
     auto &input = from(win);
+
+    // The click that captures the mouse isn't a click for the game
+    if (action == GLFW_PRESS && !input.isCaptured()) {
+      input.capture();
+      return;
+    }
+
     if (action == GLFW_PRESS) input.buttonsPressed[button] = true;
     input.buttonsDown[button] = action == GLFW_PRESS;
   });
 
 #ifdef __EMSCRIPTEN__
+  // Lock right inside the click: a later request needs another click
+  emscripten_set_mousedown_callback(
+    "#canvas", this, true,
+    [](int, const EmscriptenMouseEvent *, void *data) {
+      auto &input = *static_cast<Input *>(data);
+
+      if (!input.isCaptured()) {
+        emscripten_request_pointerlock("#canvas", false);
+      }
+
+      return false;
+    });
+
   // Pointer lock reports movement deltas, the cursor position freezes
   emscripten_set_mousemove_callback(
     EMSCRIPTEN_EVENT_TARGET_DOCUMENT, this, false,

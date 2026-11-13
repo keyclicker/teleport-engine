@@ -34,8 +34,11 @@ ifeq ($(PLATFORM),web)
   LDFLAGS += -sALLOW_MEMORY_GROWTH -sINITIAL_MEMORY=64MB
   LDFLAGS += --preload-file Resources@$(RESOURCE_DIR)
 
-  # A worker per hardware thread; ThreadPool never asks for more
+  # A worker per hardware thread; ThreadPool never asks for more.
+  # Fixed memory: growing shared memory slows JS access to it. 256 MB
+  # fits a 4K frame with its depth buffer
   MT_LDFLAGS := -pthread -sPTHREAD_POOL_SIZE=navigator.hardwareConcurrency
+  MT_LDFLAGS += -sALLOW_MEMORY_GROWTH=0 -sINITIAL_MEMORY=256MB
 else ifeq ($(PLATFORM),native)
   # Textures are loaded from here at runtime
   RESOURCE_DIR ?= Resources
@@ -66,6 +69,9 @@ CXXFLAGS += -std=c++20 -Wall -Wextra -MMD -MP
 LDLIBS   += $(shell pkg-config --libs '$(PKGS)')
 
 # ---- Object variants ---------------------------------------------------
+
+# The .d files included below define targets too; don't let one win
+.DEFAULT_GOAL := all
 
 # Objects for one build flavor, in $(BUILD_DIR)/<name>/
 #   $(1): name, $(2): extra compiler flags

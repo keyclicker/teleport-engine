@@ -73,6 +73,11 @@ public:
              Color color);
 
   /**
+   * @brief Width of the widest line of `text` at `scale`, see print()
+   */
+  static float measure(const std::string &text, float scale);
+
+  /**
    * @brief Draw and dequeue all text printed since the last call
    *
    * Call after Screen::present(), before Window::display().

@@ -142,6 +142,9 @@ public:
   Input &getInput() { return input; }
   Renderer &getRenderer() { return renderer; }
 
+  // Last rendered frame, e.g. for its size
+  const Frame &getFrame() const { return frame; }
+
   int getRenderScale() const { return config.renderScale; }
 
   /**
