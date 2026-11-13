@@ -174,11 +174,24 @@
     }
   ],
   "things": [
-    {
-      "type": "player",
-      "sector": "hall",
-      "pos": [0, 0],
-      "angle": 0
-    }
+    { "type": "player", "sector": "hall", "pos": [0, 0], "angle": 0 },
+    { "type": "monster", "sector": "hall", "pos": [250, 250], "angle": 180 },
+    { "type": "monster", "sector": "hall", "pos": [-250, -300], "angle": 90 },
+    { "type": "monster", "sector": "annex", "pos": [400, 750], "angle": 225 },
+    { "type": "monster", "sector": "annex", "pos": [250, 820], "angle": 270 },
+    { "type": "monster", "sector": "landing", "pos": [720, 680], "angle": 180 },
+    { "type": "monster", "sector": "stair3", "pos": [650, 150], "angle": 90 },
+    { "type": "monster", "sector": "secret", "pos": [600, -250], "angle": 90 },
+    { "type": "monster", "sector": "tunnel", "pos": [650, -700], "angle": 90 },
+    { "type": "monster", "sector": "tunnel", "pos": [500, -250], "angle": 0 },
+    { "type": "monster", "sector": "loop", "pos": [1100, -850], "angle": 180 },
+    { "type": "monster", "sector": "loop", "pos": [1300, -700], "angle": 180 },
+    { "type": "medkit", "sector": "hall", "pos": [-300, 300] },
+    { "type": "ammo", "sector": "annex", "pos": [330, 650] },
+    { "type": "ammo", "sector": "tunnel", "pos": [470, -880] },
+    { "type": "medkit", "sector": "loop", "pos": [1000, -950] },
+    { "type": "shotgun", "sector": "secret", "pos": [600, -100] },
+    { "type": "ammo", "sector": "secret", "pos": [500, -330] },
+    { "type": "medkit", "sector": "secret", "pos": [700, -330] }
   ]
 }

@@ -25,6 +25,13 @@ Player::Player() {
 }
 
 void Player::control(const Input &input, float dt) {
+  cooldown -= dt;
+
+  if (isDead()) {
+    velocity = {};
+    return;
+  }
+
   // ---- Look ----
 
   Vec2 motion = input.getMotion();
@@ -69,6 +76,13 @@ void Player::control(const Input &input, float dt) {
 }
 
 void Player::updateView(float dt) {
+  flash -= dt;
+  hurtFlash = std::max(0.0f, hurtFlash - dt * 2);
+  pickupFlash = std::max(0.0f, pickupFlash - dt * 3);
+
+  // Dead: sink to the floor
+  if (isDead()) eyeHeight = std::max(8.0f, eyeHeight - dt * 60);
+
   float target = z + eyeHeight;
 
   // Ease up steps; falls and jumps are already smooth
@@ -78,6 +92,13 @@ void Player::updateView(float dt) {
   } else {
     viewZ = target;
   }
+}
+
+void Player::damage(World &world, int amount, Entity *source) {
+  if (isDead()) return;
+
+  Actor::damage(world, amount, source);
+  hurtFlash = std::min(0.6f, hurtFlash + amount / 40.0f);
 }
 
 Camera Player::getCamera() const {
