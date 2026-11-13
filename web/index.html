@@ -1,0 +1,78 @@
+<!doctype html>
+<!--
+  Loads the threaded build when the page is cross-origin isolated (the
+  server sends COOP/COEP headers), the single-threaded one otherwise.
+  URL query becomes command-line arguments: ?bench&scale=1 is
+  `--bench --scale 1`.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Teleport!</title>
+
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      color: #ccc;
+      font: 16px/1.4 monospace;
+    }
+
+    /* The engine sizes the frame to the canvas's CSS box */
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      outline: none;
+    }
+
+    #status {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      white-space: pre;
+      text-align: center;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas" tabindex="-1"></canvas>
+  <div id="status">Loading…</div>
+
+  <script>
+    const status = document.getElementById("status");
+
+    // ?bench&scale=1 -> ["--bench", "--scale", "1"]
+    const args = [];
+    for (const [key, value] of new URLSearchParams(location.search)) {
+      args.push("--" + key);
+      if (value) args.push(value);
+    }
+
+    var Module = {
+      canvas: document.getElementById("canvas"),
+      arguments: args,
+
+      // Emscripten reports download and startup progress here
+      setStatus(text) {
+        status.textContent = text;
+        status.hidden = !text;
+      },
+
+      onAbort(reason) {
+        Module.setStatus("Crashed: " + reason + "\nSee the console");
+      },
+    };
+
+    const script = document.createElement("script");
+    script.src = crossOriginIsolated ? "teleport-mt.js" : "teleport.js";
+    document.body.appendChild(script);
+  </script>
+</body>
+</html>

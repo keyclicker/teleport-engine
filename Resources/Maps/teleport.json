@@ -1,0 +1,184 @@
+{
+  "styles": {
+    "wood": {
+      "middle": "wall.gif"
+    },
+    "door": {
+      "upper": "brick.png",
+      "lower": "brick.png"
+    },
+    "swastika": {
+      "middle": "sw.png"
+    },
+    "portrait": {
+      "middle": "hitler.png"
+    }
+  },
+  "sectors": [
+    {
+      "name": "hall",
+      "floor": 0.0,
+      "ceiling": 112.5,
+      "floorTexture": "stone.png",
+      "ceilingTexture": "ceiling.gif",
+      "flatScale": 0.78125,
+      "style": "wood",
+      "walls": [
+        { "from": [400, 400] },
+        { "from": [400, 0], "style": "door", "portal": ["tunnel", 0] },
+        { "from": [400, -400] },
+        { "from": [0, -600] },
+        { "from": [-400, -400] },
+        { "from": [-400, 0], "style": "door", "portal": ["loop", 2] },
+        { "from": [-400, 400] },
+        { "from": [0, 600], "style": "door", "portal": ["annex", 0] }
+      ]
+    },
+    {
+      "name": "annex",
+      "floor": 11.25,
+      "ceiling": 84.375,
+      "floorTexture": "floor.gif",
+      "ceilingTexture": "ceiling.gif",
+      "flatScale": 0.78125,
+      "style": "wood",
+      "walls": [
+        { "from": [400, 400], "style": "door", "portal": ["hall", 7] },
+        { "from": [0, 600] },
+        { "from": [400, 1000] },
+        { "from": [800, 800], "style": "door", "portal": ["landing", 2] }
+      ]
+    },
+    {
+      "name": "landing",
+      "floor": 22.5,
+      "ceiling": 168.75,
+      "floorTexture": "floor.gif",
+      "ceilingTexture": "ceiling.gif",
+      "flatScale": 0.78125,
+      "style": "wood",
+      "walls": [
+        { "from": [800, 800] },
+        { "from": [800, 400], "style": "door", "portal": ["stair1", 0] },
+        { "from": [400, 400], "style": "door", "portal": ["annex", 3] }
+      ]
+    },
+    {
+      "name": "stair1",
+      "floor": 33.75,
+      "ceiling": 168.75,
+      "floorTexture": "floor.gif",
+      "ceilingTexture": "ceiling.gif",
+      "flatScale": 0.78125,
+      "style": "wood",
+      "walls": [
+        { "from": [400, 400], "style": "door", "portal": ["landing", 1] },
+        { "from": [800, 400] },
+        { "from": [800, 300], "style": "door", "portal": ["stair2", 0] },
+        { "from": [400, 300] }
+      ]
+    },
+    {
+      "name": "stair2",
+      "floor": 45.0,
+      "ceiling": 168.75,
+      "floorTexture": "floor.gif",
+      "ceilingTexture": "ceiling.gif",
+      "flatScale": 0.78125,
+      "style": "wood",
+      "walls": [
+        { "from": [400, 300], "style": "door", "portal": ["stair1", 2] },
+        { "from": [800, 300] },
+        { "from": [800, 200], "style": "door", "portal": ["stair3", 0] },
+        { "from": [400, 200] }
+      ]
+    },
+    {
+      "name": "stair3",
+      "floor": 56.25,
+      "ceiling": 168.75,
+      "floorTexture": "floor.gif",
+      "ceilingTexture": "ceiling.gif",
+      "flatScale": 0.78125,
+      "style": "wood",
+      "walls": [
+        { "from": [400, 200], "style": "door", "portal": ["stair2", 2] },
+        { "from": [800, 200] },
+        { "from": [800, 100], "style": "door", "portal": ["stair4", 0] },
+        { "from": [400, 100] }
+      ]
+    },
+    {
+      "name": "stair4",
+      "floor": 67.5,
+      "ceiling": 168.75,
+      "floorTexture": "floor.gif",
+      "ceilingTexture": "ceiling.gif",
+      "flatScale": 0.78125,
+      "style": "wood",
+      "walls": [
+        { "from": [400, 100], "style": "door", "portal": ["stair3", 2] },
+        { "from": [800, 100] },
+        { "from": [800, 0], "style": "door", "portal": ["secret", 0] },
+        { "from": [400, 0] }
+      ]
+    },
+    {
+      "name": "secret",
+      "floor": 78.75,
+      "ceiling": 168.75,
+      "floorTexture": "floor.gif",
+      "ceilingTexture": "ceiling.gif",
+      "flatScale": 0.78125,
+      "style": "wood",
+      "walls": [
+        { "from": [400, 0], "style": "door", "portal": ["stair4", 2] },
+        { "from": [800, 0], "style": "swastika" },
+        { "from": [800, -400], "style": "portrait" },
+        { "from": [400, -400], "style": "swastika" }
+      ]
+    },
+    {
+      "name": "tunnel",
+      "floor": 0.0,
+      "ceiling": 84.375,
+      "floorTexture": "floor.gif",
+      "ceilingTexture": "ceiling.gif",
+      "flatScale": 0.78125,
+      "style": "wood",
+      "walls": [
+        { "from": [400, -400], "style": "door", "portal": ["hall", 1] },
+        { "from": [400, 0] },
+        { "from": [600, 0] },
+        { "from": [800, -200] },
+        { "from": [800, -600], "style": "door", "portal": ["loop", 0] },
+        { "from": [800, -1000] },
+        { "from": [600, -1000] },
+        { "from": [400, -800] }
+      ]
+    },
+    {
+      "name": "loop",
+      "floor": 0.0,
+      "ceiling": 84.375,
+      "floorTexture": "floor.gif",
+      "ceilingTexture": "ceiling.gif",
+      "flatScale": 0.78125,
+      "style": "wood",
+      "walls": [
+        { "from": [800, -1000], "style": "door", "portal": ["tunnel", 4] },
+        { "from": [800, -600] },
+        { "from": [1400, -600], "style": "door", "portal": ["hall", 5] },
+        { "from": [1400, -1000] }
+      ]
+    }
+  ],
+  "things": [
+    {
+      "type": "player",
+      "sector": "hall",
+      "pos": [0, 0],
+      "angle": 0
+    }
+  ]
+}

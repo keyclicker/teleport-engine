@@ -24,7 +24,7 @@
 
           nativeBuildInputs = [ pkgs.pkg-config ];
 
-          buildInputs = [ pkgs.glfw pkgs.libepoxy pkgs.stb ];
+          buildInputs = [ pkgs.glfw pkgs.libepoxy pkgs.stb pkgs.nlohmann_json ];
 
           enableParallelBuilding = true;
           makeFlags = [
@@ -52,7 +52,7 @@
           src = self;
 
           nativeBuildInputs = [ pkgs.emscripten pkgs.pkg-config ];
-          buildInputs = [ pkgs.stb ];
+          buildInputs = [ pkgs.stb pkgs.nlohmann_json ];
 
           enableParallelBuilding = true;
           makeFlags = [ "PLATFORM=web" ];
@@ -68,7 +68,7 @@
             runHook preInstall
 
             mkdir -p $out
-            cp build-web/index.{html,js,wasm,data} $out/
+            cp build-web/index.html build-web/teleport*.{js,wasm,data} $out/
 
             runHook postInstall
           '';
